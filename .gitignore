@@ -5,4 +5,7 @@
 current_release.csv
 *.pl
 *.pt
-tests/__pycache__
+tests/__pycache_
+train_data_folder/
+pred_result/
+.idea/

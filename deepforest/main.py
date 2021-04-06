@@ -363,7 +363,7 @@ class deepforest(pl.LightningModule):
                                            savedir=savedir,
                                            device=self.device,
                                            iou_threshold=self.config["nms_thresh"])
-        
+
         predictions["label"] = predictions.label.apply(lambda x: self.numeric_to_label_dict[x])
         ground_df = pd.read_csv(csv_file)
 
@@ -378,3 +378,4 @@ class deepforest(pl.LightningModule):
                                         show_plot=show_plot)
 
         return results
+
