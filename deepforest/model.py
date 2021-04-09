@@ -3,7 +3,6 @@ import torchvision
 from torchvision.models.detection.retinanet import RetinaNet
 from torchvision.models.detection.retinanet import AnchorGenerator
 
-
 def load_backbone():
     """A torch vision retinanet model"""
     #backbone = torchvision.models.detection.retinanet_resnet50_fpn(pretrained=True)

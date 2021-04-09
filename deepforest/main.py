@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from skimage import io
 import torch
+import cv2
 
 import pytorch_lightning as pl
 from torch import optim
@@ -13,13 +14,14 @@ from deepforest import get_data
 from deepforest import model
 from deepforest import predict
 from deepforest import evaluate as evaluate_iou
+from deepforest.logic_nn import LogicNN
 
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
     """
 
-    def __init__(self, num_classes=1, label_dict = {"Tree":0}):
+    def __init__(self, rules, rule_lambdas, pi_params, C, num_classes=1, label_dict = {"Tree":0}, batch_size = 1):
         """
         Args:
             num_classes (int): number of classes in the model
@@ -55,6 +57,10 @@ class deepforest(pl.LightningModule):
         
         self.label_dict = label_dict
         self.numeric_to_label_dict = {v: k for k, v in label_dict.items()}
+        self.batch_size = batch_size
+        self.logic_nn = LogicNN(network=model, rules=rules, rule_lambda=rule_lambdas, C=C)
+        self.pi = 0
+        self.n_train_batches = -1
 
     def use_release(self):
         """Use the latest DeepForest model release from github and load model.
@@ -285,13 +291,36 @@ class deepforest(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         """Train on a loaded dataset
+        path: tuple
+        images: tuple of images.  image shape is [C, H, W].  image values [0, 1].  channel order RGB.
+        targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
         path, images, targets = batch
+        pi = 0 #self.get_pi(cur_iter=batch_idx * 1. / self.config["train"]["n_train_batches"], params= self.pi_params)
 
+        # make sure model is in training mode
+        self.model.train()
         loss_dict = self.model.forward(images, targets)
 
+        # put model in eval mode
+        self.model.eval()
+        with torch.no_grad():
+            # preds a list of dictionaries
+            # each dictionary has keys 'boxes', 'scores', and 'labels'
+            # each value is a tensor
+            preds = self.model.forward(images)
+
+            # get special features
+            eng_fea = []
+            for img, img_dict in zip(images, preds):
+                for box in torch.round(img_dict['boxes']).int():
+                    # get mean of green channel inside bounding box
+                    is_green = torch.mean(img[1, box[1]:box[2] + 1, box[0]:box[3] + 1])
+                    eng_fea.append(is_green)
+            print(eng_fea)
+            input()
         # sum of regression and classification loss
-        losses = sum([loss for loss in loss_dict.values()])
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()])
 
         return losses
 
@@ -379,3 +408,8 @@ class deepforest(pl.LightningModule):
 
         return results
 
+    def get_pi(cur_iter, params=None, pi=None):
+        """ exponential decay: pi_t = max{1 - k^t, lb} """
+        k, lb = params[0], params[1]
+        pi = 1. - max([k ** cur_iter, lb])
+        return pi

@@ -19,8 +19,16 @@ from deepforest import main
 from deepforest import get_data
 from deepforest import utilities
 from deepforest import preprocess
+from deepforest import callbacks
+from deepforest.fol import FOL_green
 
 np.random.seed(42)
+n_classes = 1
+rules = [FOL_green(1, None, None)]
+rule_lambdas = [1]
+pi_params = [0.95, 0]
+batch_size = 1
+C = 6
 
 #convert hand annotations from xml into retinanet format
 #The get_data function is only needed when fetching sample package data
@@ -74,7 +82,7 @@ annotations_file
 """## Training & Evaluating Using CPU"""
 
 #initial the model and change the corresponding config file
-m = main.deepforest(num_classes=1)
+m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes)
 m.config["train"]["csv_file"] = annotations_file
 m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
 #Since this is a demo example and we aren't training for long, only show the higher quality boxes
@@ -82,8 +90,13 @@ m.config["score_thresh"] = 0.4
 m.config["train"]['epochs'] = 2
 m.config["validation"]["csv_file"] = validation_file
 m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
+
+training_data = m.train_dataloader()
+n_train_batches = len(training_data) / batch_size
+m.config["train"]["n_train_batches"] = n_train_batches
+
 #create a pytorch lighting trainer used to training
-m.create_trainer()
+m.create_trainer(callbacks=[callbacks.TrainerCallback()])
 #load the lastest release model
 m.use_release()
 

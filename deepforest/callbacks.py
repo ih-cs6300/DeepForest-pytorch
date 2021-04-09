@@ -65,3 +65,14 @@ class images_callback(Callback):
         if trainer.current_epoch % self.every_n_epochs == 0:
             print("Running image callback")
             self.log_images(pl_module)
+
+class TrainerCallback(Callback):
+
+    def on_init_start(self, trainer):
+        print('Starting to init trainer!')
+
+    def on_init_end(self, trainer):
+        pass
+
+    def on_train_end(self, trainer, pl_module):
+        pass
