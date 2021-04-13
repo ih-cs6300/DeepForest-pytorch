@@ -43,8 +43,18 @@ def create_model(num_classes, nms_thresh, score_thresh):
     Returns:
         model: a pytorch nn module
     """
+    print("my model 1433")
     backbone = load_backbone()
-    model = RetinaNet(backbone.backbone, num_classes=num_classes)
+    #anchor_sizes = tuple((x, int(x * 2 ** (1.0 / 3)), int(x * 2 ** (2.0 / 3))) for x in [32, 64, 128, 256, 512])
+    anchor_sizes = ((32, 40, 50), (32, 40, 50), (32, 40, 50), (32, 40, 50), (32, 40, 50))
+    #anchor_sizes = ((32, ), (32, ), (32, ), (32, ), (32, ))
+
+    aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
+    #aspect_ratios = ((.5, .5, .5),) * len(anchor_sizes)
+
+    anchor_generator = AnchorGenerator(anchor_sizes, aspect_ratios)
+    model = RetinaNet(backbone.backbone, num_classes=num_classes, anchor_generator=anchor_generator)
+    print("changed model")
     model.nms_thresh = nms_thresh
     model.score_thresh = score_thresh
 
