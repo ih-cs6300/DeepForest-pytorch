@@ -58,6 +58,11 @@ class FOL(object):
     = - w * (1 - r(X_i, y_i=c))
            if X_i is a grounding of the rule
     = 1    otherwise
+
+    w = C * rule_lambda
+    X = images from batch; in a tuple
+    F = special features calculated for rule; mean green value in box
+
     """
         if F == None:
             X, F, conds = self.input, self.fea, self.conds
@@ -190,14 +195,46 @@ class FOL_green(FOL):
     """
     Rule-specific functions
     """
+    def log_distribution(self, w, X=None, F=None):
+        """ Return an nxK matrix with the (i,c)-th term
+    = - w * (1 - r(X_i, y_i=c))
+           if X_i is a grounding of the rule
+    = 1    otherwise
+
+    w = C * rule_lambda
+    X = y_pred a list of dictionaries; 1 dictionary per image; keys are 'boxes', 'scores', 'labels'
+    F = special features calculated for rule; mean green value in box
+
+    """
+        if F == None:
+            X, F, conds = self.input, self.fea, self.conds
+        else:
+            conds = self.conditions(X[0]['labels'],F)
+        log_distr = self.distribution_helper(w, X, F, conds)
+        return log_distr
 
     def value_single(self, x, y, f):
-        ret = torch.mean(torch.tensor([torch.min(torch.tensor([1. - y + f[2], 1.])), torch.min(torch.tensor([1. - f[2] + y, 1.]))]))
-        #ret = torch.tensor(ret, dtype=torch.float)
-        return (1., ret)[self.condition_single(x, f)]
+        #ret = torch.mean(torch.tensor([torch.min(torch.tensor([1. - y + f, 1.])), torch.min(torch.tensor([1. - f + y, 1.]))]))
+        ret = (f + x) / 2
+        return ret
+
+    def distribution_helper(self, w, X, F, conds):
+        # w - normalizing factor
+        # X - original data
+        # F - engineered features
+        # conds - conditions for each rule
+        # map applies distribution_helper_helper to each row of distribution
+        # returns a tensor with values r(x,y)
+
+        nx = X[0]['labels'].shape[0]            # number of bounding boxes in image
+        distr = torch.ones([nx, self.K], dtype=torch.float)
+        distr = torch.tensor(list(map(lambda c, x, f, d: self.distribution_helper_helper(x, f) if c == 1. else d.tolist(), conds, X[0]['scores'], F, distr)))
+        distr = torch.tensor(list(map(lambda d: (-w * ((torch.min(d) * torch.ones(d.shape)) - 0.5)).tolist(), distr)))  # relative value w.r.t the minimum
+        return distr
 
 
 
     def condition_single(self, x, f):
         # returns a tensor batch_size x 1 of True or False
-        return f[0] == 1.
+        # 0 means its labeled as a tree
+        return x == 0

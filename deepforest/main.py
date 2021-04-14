@@ -3,7 +3,9 @@ import os
 import pandas as pd
 from skimage import io
 import torch
-import cv2
+
+from datetime import datetime
+#import cv2
 
 import pytorch_lightning as pl
 from torch import optim
@@ -70,8 +72,7 @@ class deepforest(pl.LightningModule):
         """
         # Download latest model from github release
         release_tag, self.release_state_dict = utilities.use_release()
-        self.model.load_state_dict(
-            torch.load(self.release_state_dict, map_location=self.device))
+        self.model.load_state_dict(torch.load(self.release_state_dict, map_location=self.device))
 
         # load saved model and tag release
         self.__release_version__ = release_tag
@@ -79,8 +80,10 @@ class deepforest(pl.LightningModule):
 
     def create_model(self):
         """Define a deepforest retinanet architecture"""
-        self.model = model.create_model(self.num_classes, self.config["nms_thresh"],
-                                        self.config["score_thresh"])
+        now = datetime.now()
+        curr_time = now.strftime("%H:%M:%S")
+        print("Time: {}".format(curr_time))
+        self.model = model.create_model(self.num_classes, self.config["nms_thresh"], self.config["score_thresh"])
 
     def create_trainer(self, logger=None, callbacks=None, **kwargs):
         """Create a pytorch ligthning training by reading config files
@@ -306,19 +309,22 @@ class deepforest(pl.LightningModule):
         self.model.eval()
         with torch.no_grad():
             # preds a list of dictionaries
+            # one dictionary per image
             # each dictionary has keys 'boxes', 'scores', and 'labels'
             # each value is a tensor
-            preds = self.model.forward(images)
+            preds = self.model.forward(images)          #if targets are included model is being trained
 
             # get special features
             eng_fea = []
             for img, img_dict in zip(images, preds):
                 for box in torch.round(img_dict['boxes']).int():
                     # get mean of green channel inside bounding box
-                    is_green = torch.mean(img[1, box[1]:box[2] + 1, box[0]:box[3] + 1])
+                    # box format: [x1, y1, x2, y2]
+                    is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
                     eng_fea.append(is_green)
-            print(eng_fea)
-            input()
+            eng_fea = torch.tensor(eng_fea)
+            q_y_pred, p_y_pred = self.logic_nn.predict(preds, images, [eng_fea])
+
         # sum of regression and classification loss
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()])
 
