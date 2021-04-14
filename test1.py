@@ -96,7 +96,8 @@ n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
 
 #create a pytorch lighting trainer used to training
-m.create_trainer(callbacks=[callbacks.TrainerCallback()])
+#m.create_trainer(callbacks=[callbacks.TrainerCallback()])
+m.create_trainer()
 #load the lastest release model
 m.use_release()
 
