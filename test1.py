@@ -24,11 +24,12 @@ from deepforest.fol import FOL_green
 
 np.random.seed(42)
 n_classes = 1
-rules = [FOL_green(1, None, None)]
+rules = [FOL_green(2, None, None)]
 rule_lambdas = [1]
 pi_params = [0.95, 0]
 batch_size = 1
 C = 6
+
 
 #convert hand annotations from xml into retinanet format
 #The get_data function is only needed when fetching sample package data

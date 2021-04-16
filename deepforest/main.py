@@ -3,9 +3,11 @@ import os
 import pandas as pd
 from skimage import io
 import torch
+from torch.nn import functional as F
 
 from datetime import datetime
 #import cv2
+from torchvision.ops import boxes
 
 import pytorch_lightning as pl
 from torch import optim
@@ -63,6 +65,7 @@ class deepforest(pl.LightningModule):
         self.logic_nn = LogicNN(network=model, rules=rules, rule_lambda=rule_lambdas, C=C)
         self.pi = 0
         self.n_train_batches = -1
+        self.pi_params = pi_params
 
     def use_release(self):
         """Use the latest DeepForest model release from github and load model.
@@ -299,7 +302,10 @@ class deepforest(pl.LightningModule):
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
         path, images, targets = batch
-        pi = 0 #self.get_pi(cur_iter=batch_idx * 1. / self.config["train"]["n_train_batches"], params= self.pi_params)
+        curr_iter = batch_idx * 1. / self.config["train"]["n_train_batches"]
+
+        pi = self.get_pi(curr_iter)
+        box1 = torch.tensor([0, 0, 32, 128]).unsqueeze(0)
 
         # make sure model is in training mode
         self.model.train()
@@ -310,7 +316,7 @@ class deepforest(pl.LightningModule):
         with torch.no_grad():
             # preds a list of dictionaries
             # one dictionary per image
-            # each dictionary has keys 'boxes', 'scores', and 'labels'
+            # each dictionary has keys 'boxes', 'scores', and 'labels'hu
             # each value is a tensor
             preds = self.model.forward(images)          #if targets are included model is being trained
 
@@ -321,12 +327,17 @@ class deepforest(pl.LightningModule):
                     # get mean of green channel inside bounding box
                     # box format: [x1, y1, x2, y2]
                     is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
+
+                    #box2 = self.translate_box(box.unsqueeze(0))
+                    #is_green = boxes.box_iou(box1, box2)
+
                     eng_fea.append(is_green)
             eng_fea = torch.tensor(eng_fea)
-            q_y_pred, p_y_pred = self.logic_nn.predict(preds, images, [eng_fea])
+            q_y_pred = self.logic_nn.predict(preds, images, [eng_fea])
+        huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred[0]['labels'].float())
 
         # sum of regression and classification loss
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()])
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
         return losses
 
@@ -414,8 +425,17 @@ class deepforest(pl.LightningModule):
 
         return results
 
-    def get_pi(cur_iter, params=None, pi=None):
+    def get_pi(self, cur_iter, pi=None):
         """ exponential decay: pi_t = max{1 - k^t, lb} """
-        k, lb = params[0], params[1]
+        k, lb = self.pi_params[0], self.pi_params[1]
         pi = 1. - max([k ** cur_iter, lb])
         return pi
+
+    def translate_box(self, box):
+        box[:, 2] = box[:, 2] - box[:, 0]
+        box[:, 0] = box[:, 0] - box[:, 0]
+
+        box[:, 3] = box[:, 3] - box[:, 1]
+        box[:, 1] = box[:, 1] - box[:, 1]
+
+        return box

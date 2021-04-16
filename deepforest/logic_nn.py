@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from copy import deepcopy
 
 class LogicNN(object):
     def __init__(self, network, rules=[], rule_lambda=[], C=1.):
@@ -25,13 +26,12 @@ class LogicNN(object):
             distr = rule.log_distribution(self.C * self.rule_lambda[i], p_y_pred, new_rule_fea[i])
             distr_all = distr_all + distr
         distr_all += distr
-        #
-        # distr_y0 = distr_all[:, 0]
-        # distr_y0 = distr_y0.reshape([distr_y0.shape[0], 1])
-        # distr_y0_copies = torch.tile(distr_y0, [1, distr_all.shape[1]])
-        # distr_all -= distr_y0_copies
+
+        distr_y0 = distr_all[:, 0]
+        distr_y0 = distr_y0.reshape([distr_y0.shape[0], 1])
+        distr_y0_copies = torch.tile(distr_y0, [1, distr_all.shape[1]])
+        distr_all -= distr_y0_copies
         distr_all = torch.maximum(torch.minimum(distr_all, torch.tensor(60.)), torch.tensor(-60.))  # truncate to avoid over-/under-flow
-        distr_all *= torch.tensor(-1.)
         return torch.exp(distr_all)
 
     def predict(self, p_y_pred, new_data, new_rule_fea):
@@ -39,11 +39,21 @@ class LogicNN(object):
         # new_data - images from current batch
         # new_rule_fea - mean of green channel for each predicted box
 
-        q_y_given_x_fea_pred = p_y_pred * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
+        q_y_given_x_fea_pred = deepcopy(p_y_pred)
+        #q_y_given_x_fea_pred = p_y_pred * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
+
+        p_y_pred_0 = 1. - p_y_pred[0]['scores']
+        p_y_pred[0]['scores2'] = torch.cat([p_y_pred_0.reshape(-1, 1), p_y_pred[0]['scores'].reshape(-1, 1)], dim=1)
+        q_y_given_x_fea_pred[0]['scores2'] = p_y_pred[0]['scores2'] * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
 
         # normalize
-        n_q_y_given_x_fea_pred = q_y_given_x_fea_pred / torch.sum(q_y_given_x_fea_pred, 1).reshape((-1, 1))
+        n_q_y_given_x_fea_pred = q_y_given_x_fea_pred[0]['scores2'] / torch.sum(q_y_given_x_fea_pred[0]['scores2'], 1).reshape((-1, 1))
+        q_y_given_x_fea_pred[0]['scores2'] = n_q_y_given_x_fea_pred
 
-        q_y_pred = torch.argmax(n_q_y_given_x_fea_pred, 1).unsqueeze(1)
-        p_y_pred = torch.argmax(p_y_pred, 1).unsqueeze(1)
-        return q_y_pred, p_y_pred
+        temp = torch.argmax(q_y_given_x_fea_pred[0]['scores2'], 1).unsqueeze(1)
+        q_y_pred = deepcopy(q_y_given_x_fea_pred)
+        temp = 1 - temp
+        temp = temp.flatten()
+        q_y_pred[0]['labels'] = temp
+        #p_y_pred = torch.argmax(p_y_pred[0]['scores2'], 1).unsqueeze(1)
+        return q_y_pred
