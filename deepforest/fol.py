@@ -107,7 +107,7 @@ class FOL_green(FOL):
     """
     Rule-specific functions
     """
-    def log_distribution2(self, w, X=None, F=None):
+    def log_distribution(self, w, X=None, F=None):
         """ Return an nxK matrix with the (i,c)-th term
     = - w * (1 - r(X_i, y_i=c))
            if X_i is a grounding of the rule
@@ -125,7 +125,7 @@ class FOL_green(FOL):
         log_distr = self.distribution_helper(w, X, F, conds)
         return log_distr
 
-    def log_distribution(self, w, X=None, F=None):
+    def log_distribution2(self, w, X=None, F=None):
         f_1 = F.reshape(-1, 1)
         f_0 = 1. - f_1
         f = torch.cat([f_0, f_1], 1)
