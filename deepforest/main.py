@@ -66,6 +66,7 @@ class deepforest(pl.LightningModule):
         self.pi = 0
         self.n_train_batches = -1
         self.pi_params = pi_params
+        self.batch_cnt = 0
 
     def use_release(self):
         """Use the latest DeepForest model release from github and load model.
@@ -302,10 +303,12 @@ class deepforest(pl.LightningModule):
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
         path, images, targets = batch
-        curr_iter = batch_idx * 1. / self.config["train"]["n_train_batches"]
+        curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
+        self.batch_cnt += 1
 
         pi = self.get_pi(curr_iter)
-        box1 = torch.tensor([0, 0, 32, 128]).unsqueeze(0)
+        print("pi: {}".format(pi))
+        #box1 = torch.tensor([0, 0, 32, 128]).unsqueeze(0)
 
         # make sure model is in training mode
         self.model.train()
@@ -313,35 +316,35 @@ class deepforest(pl.LightningModule):
 
         # put model in eval mode
         self.model.eval()
-        with torch.no_grad():
-            # preds a list of dictionaries
-            # one dictionary per image
-            # each dictionary has keys 'boxes', 'scores', and 'labels'hu
-            # each value is a tensor
-            preds = self.model.forward(images)          #if targets are included model is being trained
+        #with torch.no_grad():
+        # preds a list of dictionaries
+        # one dictionary per image
+        # each dictionary has keys 'boxes', 'scores', and 'labels'hu
+        # each value is a tensor
+        preds = self.model.forward(images)          #if targets are included model is being trained
 
-            # get special features
-            eng_fea = []
-            for img, img_dict in zip(images, preds):
-                for box in torch.round(img_dict['boxes']).int():
-                    # get mean of green channel inside bounding box
-                    # box format: [x1, y1, x2, y2]
-                    is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
+        # get special features
+        eng_fea = []
+        for img, img_dict in zip(images, preds):
+            for box in torch.round(img_dict['boxes']).int():
+                # get mean of green channel inside bounding box
+                # box format: [x1, y1, x2, y2]
+                is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
 
-                    #box2 = self.translate_box(box.unsqueeze(0))
-                    #is_green = boxes.box_iou(box1, box2)
+                #box2 = self.translate_box(box.unsqueeze(0))
+                #is_green = boxes.box_iou(box1, box2)
 
-                    eng_fea.append(is_green)
-            eng_fea = torch.tensor(eng_fea)
-            q_y_pred = self.logic_nn.predict(preds, images, [eng_fea])
+                eng_fea.append(is_green)
+        eng_fea = torch.tensor(eng_fea)
+        q_y_pred = self.logic_nn.predict(preds, images, [eng_fea])
         huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred[0]['labels'].float())
 
         # sum of regression and classification loss
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
-
+        #losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
+        losses = huLoss
         return losses
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step1(self, batch, batch_idx):
         """Train on a loaded dataset
 
         """
@@ -359,7 +362,7 @@ class deepforest(pl.LightningModule):
 
         return losses
 
-    def validation_end(self, outputs):
+    def validation_end1(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         comet_logs = {'val_loss': avg_loss}
 
