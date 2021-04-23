@@ -9,3 +9,4 @@ tests/__pycache_
 train_data_folder/
 pred_result/
 .idea/
+comet_test.py
