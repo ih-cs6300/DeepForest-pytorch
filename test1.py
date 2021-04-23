@@ -12,9 +12,11 @@ Original file is located at
 """
 
 #load the modules
+import comet
 import os
 import time
 import numpy as np
+import torch
 from deepforest import main
 from deepforest import get_data
 from deepforest import utilities
@@ -26,10 +28,10 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_green(2, None, None)]
 rule_lambdas = [1]
-pi_params = [0.9, 0]
+pi_params = [0.96, 0]
 batch_size = 1
 C = 6
-
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #convert hand annotations from xml into retinanet format
 #The get_data function is only needed when fetching sample package data
@@ -83,12 +85,48 @@ annotations_file
 """## Training & Evaluating Using CPU"""
 
 #initial the model and change the corresponding config file
-m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes)
+#m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes)
+#m.config["train"]["csv_file"] = annotations_file
+#m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
+##Since this is a demo example and we aren't training for long, only show the higher quality boxes
+#m.config["score_thresh"] = 0.4
+#m.config["train"]['epochs'] = 2
+#m.config["validation"]["csv_file"] = validation_file
+#m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
+
+#training_data = m.train_dataloader()
+#n_train_batches = len(training_data) / batch_size
+#m.config["train"]["n_train_batches"] = n_train_batches
+
+#create a pytorch lighting trainer used to training
+#m.create_trainer(callbacks=[callbacks.TrainerCallback()])
+#m.create_trainer()
+#load the lastest release model
+#m.use_release()
+
+#start_time = time.time()
+#m.trainer.fit(m)
+#print(f"--- Training on CPU: {(time.time() - start_time):.2f} seconds ---")
+
+#create a directory to save the predict image
+#save_dir = os.path.join(os.getcwd(),'pred_result')
+#try:
+#    os.mkdir(save_dir)
+#except OSError as error:
+#    print(error)
+
+#results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir = save_dir)
+#print(results)
+
+"""## Training & Evaluating Using GPU"""
+
+#initial the model and change the corresponding config file
+m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to(device)
+m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = annotations_file
 m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
-#Since this is a demo example and we aren't training for long, only show the higher quality boxes
 m.config["score_thresh"] = 0.4
-m.config["train"]['epochs'] = 2
+m.config["train"]['epochs'] = 4
 m.config["validation"]["csv_file"] = validation_file
 m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
 
@@ -97,46 +135,25 @@ n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
 
 #create a pytorch lighting trainer used to training
-#m.create_trainer(callbacks=[callbacks.TrainerCallback()])
 m.create_trainer()
 #load the lastest release model
 m.use_release()
 
 start_time = time.time()
 m.trainer.fit(m)
-print(f"--- Training on CPU: {(time.time() - start_time):.2f} seconds ---")
+print(f"--- Training on GPU: {(time.time() - start_time):.2f} seconds ---")
 
-#create a directory to save the predict image
+#save the prediction result to a prediction folder
 save_dir = os.path.join(os.getcwd(),'pred_result')
+
 try:
-    os.mkdir(save_dir)
+   os.mkdir(save_dir)
 except OSError as error:
-    print(error)
+   print(error)
+results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
-results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir = save_dir)
-print(results)
+for f in os.listdir('./pred_result'):
+   comet.experiment.log_image('./pred_result/' + f)
 
-"""## Training & Evaluating Using GPU"""
-
-#initial the model and change the corresponding config file
-# m = main.deepforest()
-# m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
-# m.config["train"]["csv_file"] = annotations_file
-# m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
-# m.config["score_thresh"] = 0.4
-# m.config["train"]['epochs'] = 2
-# m.config["validation"]["csv_file"] = validation_file
-# m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
-# #create a pytorch lighting trainer used to training
-# m.create_trainer()
-# #load the lastest release model
-# m.use_release()
-#
-# start_time = time.time()
-# m.trainer.fit(m)
-# print(f"--- Training on GPU: {(time.time() - start_time):.2f} seconds ---")
-#
-# #save the prediction result to a prediction folder
-# save_dir = os.path.join(os.getcwd(),'pred_result')
-# os.mkdir(save_dir)
-# results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+comet.experiment.log_others(results)
+comet.experiment.log_parameter('pi_params', pi_params)
