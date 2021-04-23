@@ -308,7 +308,7 @@ class deepforest(pl.LightningModule):
 
         pi = self.get_pi(curr_iter)
         print("pi: {}".format(pi))
-        #box1 = torch.tensor([0, 0, 32, 128]).unsqueeze(0)
+        box1 = torch.tensor([0, 0, 128, 256]).unsqueeze(0)
 
         # make sure model is in training mode
         self.model.train()
@@ -336,12 +336,13 @@ class deepforest(pl.LightningModule):
 
                 eng_fea.append(is_green)
         eng_fea = torch.tensor(eng_fea)
-        q_y_pred = self.logic_nn.predict(preds, images, [eng_fea])
-        huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred[0]['labels'].float())
-
+        q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
+        #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
+        huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
+        #huLoss.requires_grad = True
+        #losses = huLoss
         # sum of regression and classification loss
-        #losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
-        losses = huLoss
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
         return losses
 
     def validation_step1(self, batch, batch_idx):

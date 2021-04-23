@@ -26,7 +26,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_green(2, None, None)]
 rule_lambdas = [1]
-pi_params = [0.4, 0]
+pi_params = [0.9, 0]
 batch_size = 1
 C = 6
 
@@ -140,4 +140,3 @@ print(results)
 # save_dir = os.path.join(os.getcwd(),'pred_result')
 # os.mkdir(save_dir)
 # results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir= save_dir)
-
