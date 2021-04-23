@@ -107,7 +107,7 @@ class FOL_green(FOL):
     """
     Rule-specific functions
     """
-    def log_distribution(self, w, X=None, F=None):
+    def log_distribution2(self, w, X=None, F=None):
         """ Return an nxK matrix with the (i,c)-th term
     = - w * (1 - r(X_i, y_i=c))
            if X_i is a grounding of the rule
@@ -121,11 +121,11 @@ class FOL_green(FOL):
         if F == None:
             X, F, conds = self.input, self.fea, self.conds
         else:
-            conds = self.conditions(X[0]['labels'],F)
+            conds = self.conditions(torch.zeros(X.shape[0], 1), F)
         log_distr = self.distribution_helper(w, X, F, conds)
         return log_distr
 
-    def log_distribution2(self, w, X=None, F=None):
+    def log_distribution(self, w, X=None, F=None):
         f_1 = F.reshape(-1, 1)
         f_0 = 1. - f_1
         f = torch.cat([f_0, f_1], 1)
@@ -145,9 +145,9 @@ class FOL_green(FOL):
         # map applies distribution_helper_helper to each row of distribution
         # returns a tensor with values r(x,y)
 
-        nx = X[0]['labels'].shape[0]            # number of bounding boxes in image
-        distr = torch.ones([nx, self.K], dtype=torch.float)
-        distr = torch.tensor(list(map(lambda c, x, f, d: self.distribution_helper_helper(x, f) if c == True else d.tolist(), conds, X[0]['scores2'], F, distr)))
+        nx = X.shape[0]            # number of bounding boxes in image
+        distr = torch.ones([nx, self.K], dtype=torch.float, requires_grad=True)
+        distr = torch.tensor(list(map(lambda c, x, f, d: self.distribution_helper_helper(x, f) if c == True else d.tolist(), conds, X, F, distr)))
         distr = torch.tensor(list(map(lambda d: (-w * ((torch.min(d) * torch.ones(d.shape)) - d)).tolist(), distr)))  # relative value w.r.t the minimum
         return distr
 

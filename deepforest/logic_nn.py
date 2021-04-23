@@ -21,7 +21,7 @@ class LogicNN(object):
         # new_rule_fea = a list of features calculated for rules
         if new_rule_fea == None:
             new_rule_fea = [None] * len(self.rules)
-        distr_all = torch.tensor(0.0)
+        distr_all = torch.tensor(0.0, requires_grad=True)
         for i, rule in enumerate(self.rules):
             distr = rule.log_distribution(self.C * self.rule_lambda[i], p_y_pred, new_rule_fea[i])
             distr_all = distr_all + distr
@@ -39,21 +39,18 @@ class LogicNN(object):
         # new_data - images from current batch
         # new_rule_fea - mean of green channel for each predicted box
 
-        q_y_given_x_fea_pred = deepcopy(p_y_pred)
         #q_y_given_x_fea_pred = p_y_pred * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
 
-        p_y_pred_0 = 1. - p_y_pred[0]['scores']
-        p_y_pred[0]['scores2'] = torch.cat([p_y_pred_0.reshape(-1, 1), p_y_pred[0]['scores'].reshape(-1, 1)], dim=1)
-        q_y_given_x_fea_pred[0]['scores2'] = p_y_pred[0]['scores2'] * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
+        p_y_pred_0 = 1. - p_y_pred
+        p_y_pred = torch.cat([p_y_pred_0.reshape(-1, 1), p_y_pred.reshape(-1, 1)], dim=1)
+        q_y_given_x_fea_pred = p_y_pred * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
 
         # normalize
-        n_q_y_given_x_fea_pred = q_y_given_x_fea_pred[0]['scores2'] / torch.sum(q_y_given_x_fea_pred[0]['scores2'], 1).reshape((-1, 1))
-        q_y_given_x_fea_pred[0]['scores2'] = n_q_y_given_x_fea_pred
+        n_q_y_given_x_fea_pred = q_y_given_x_fea_pred / torch.sum(q_y_given_x_fea_pred, 1).reshape((-1, 1))
 
-        temp = torch.argmax(q_y_given_x_fea_pred[0]['scores2'], 1).unsqueeze(1)
-        q_y_pred = deepcopy(q_y_given_x_fea_pred)
+        temp = torch.argmax(n_q_y_given_x_fea_pred, 1).unsqueeze(1)
         temp = 1 - temp
         temp = temp.flatten()
-        q_y_pred[0]['labels'] = temp
+        q_y_pred = temp
         #p_y_pred = torch.argmax(p_y_pred[0]['scores2'], 1).unsqueeze(1)
         return q_y_pred
