@@ -67,6 +67,7 @@ class deepforest(pl.LightningModule):
         self.n_train_batches = -1
         self.pi_params = pi_params
         self.batch_cnt = 0
+        
 
     def use_release(self):
         """Use the latest DeepForest model release from github and load model.
@@ -302,6 +303,7 @@ class deepforest(pl.LightningModule):
         images: tuple of images.  image shape is [C, H, W].  image values [0, 1].  channel order RGB.
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")        
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         self.batch_cnt += 1
@@ -335,7 +337,7 @@ class deepforest(pl.LightningModule):
                 #is_green = boxes.box_iou(box1, box2)
 
                 eng_fea.append(is_green)
-        eng_fea = torch.tensor(eng_fea)
+        eng_fea = torch.tensor(eng_fea).to(device)
         q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
         #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
         huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
