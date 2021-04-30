@@ -1,6 +1,7 @@
 # entry point for deepforest model
 import os
 import pandas as pd
+import numpy as np
 from skimage import io
 import torch
 from torch.nn import functional as F
@@ -310,7 +311,8 @@ class deepforest(pl.LightningModule):
 
         pi = self.get_pi(curr_iter)
         print("pi: {}".format(pi))
-        box1 = torch.tensor([0, 0, 128, 256]).unsqueeze(0)
+        box1 = torch.tensor([0, 0, 128, 256]).unsqueeze(0).to(device)
+        huLoss = 0
 
         # make sure model is in training mode
         self.model.train()
@@ -321,28 +323,30 @@ class deepforest(pl.LightningModule):
         #with torch.no_grad():
         # preds a list of dictionaries
         # one dictionary per image
-        # each dictionary has keys 'boxes', 'scores', and 'labels'hu
+        # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
         preds = self.model.forward(images)          #if targets are included model is being trained
 
         # get special features
-        eng_fea = []
-        for img, img_dict in zip(images, preds):
-            for box in torch.round(img_dict['boxes']).int():
-                # get mean of green channel inside bounding box
-                # box format: [x1, y1, x2, y2]
-                is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
+        if len(preds[0]['labels']) > 0:
+            print("Adding Hu-Loss")
+            eng_fea = []
+            for img, img_dict in zip(images, preds):
+                for box in torch.round(img_dict['boxes']).int():
+                    # get mean of green channel inside bounding box
+                    # box format: [x1, y1, x2, y2]
+                    #is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
 
-                #box2 = self.translate_box(box.unsqueeze(0))
-                #is_green = boxes.box_iou(box1, box2)
+                    box2 = self.translate_box(box.unsqueeze(0))
+                    is_green = boxes.box_iou(box1, box2)
 
-                eng_fea.append(is_green)
-        eng_fea = torch.tensor(eng_fea).to(device)
-        q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
-        #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
-        huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
-        #huLoss.requires_grad = True
-        #losses = huLoss
+                    eng_fea.append(is_green)
+            eng_fea = torch.tensor(eng_fea).to(device)
+            q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
+            #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
+            #huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
+            huLoss = F.l1_loss(preds[0]['boxes'], preds[0]['boxes'] * torch.ones(preds[0]['boxes'].shape, requires_grad=True).to(device) * 1.20)
+
         # sum of regression and classification loss
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
         return losses
