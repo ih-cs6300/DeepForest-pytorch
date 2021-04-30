@@ -28,7 +28,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_green(2, None, None)]
 rule_lambdas = [1]
-pi_params = [0.96, 0]
+pi_params = [0.9, 0]
 batch_size = 1
 C = 6
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -126,7 +126,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = annotations_file
 m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
 m.config["score_thresh"] = 0.4
-m.config["train"]['epochs'] = 4
+m.config["train"]['epochs'] = 2
 m.config["validation"]["csv_file"] = validation_file
 m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
 
