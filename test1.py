@@ -152,8 +152,11 @@ except OSError as error:
    print(error)
 results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
-for f in os.listdir('./pred_result'):
+file_list = [f for f in os.listdir(save_dir) if f.split(".")[1] == 'png']
+
+for f in file_list:
    comet.experiment.log_image('./pred_result/' + f)
 
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
+comet.experiment.log_table('./pred_result/predictions.csv')
