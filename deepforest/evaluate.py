@@ -12,6 +12,8 @@ from deepforest import IoU
 from deepforest.utilities import check_file
 from deepforest import visualize
 
+from os.path import join
+
 
 def evaluate_image(predictions, ground_df, show_plot, root_dir, savedir):
     """
@@ -136,5 +138,7 @@ def evaluate(predictions,
             class_size[name] = group.shape[0]
         
         class_recall = pd.DataFrame({"label":class_recall_dict.keys(),"recall":pd.Series(class_recall_dict), "precision":pd.Series(class_precision_dict), "size":pd.Series(class_size)}).reset_index(drop=True)
-            
+
+
+    predictions.to_csv(join(savedir, "predictions.csv"), index=False, header=True)            
     return {"results": results, "box_precision": box_precision, "box_recall": box_recall, "class_recall":class_recall}

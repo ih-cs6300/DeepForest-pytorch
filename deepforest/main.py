@@ -20,7 +20,7 @@ from deepforest import model
 from deepforest import predict
 from deepforest import evaluate as evaluate_iou
 from deepforest.logic_nn import LogicNN
-
+import comet
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
@@ -335,20 +335,25 @@ class deepforest(pl.LightningModule):
                 for box in torch.round(img_dict['boxes']).int():
                     # get mean of green channel inside bounding box
                     # box format: [x1, y1, x2, y2]
-                    #is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
+                    is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
 
-                    box2 = self.translate_box(box.unsqueeze(0))
-                    is_green = boxes.box_iou(box1, box2)
+                    #box2 = self.translate_box(box.unsqueeze(0))
+                    #is_green = boxes.box_iou(box1, box2)
 
                     eng_fea.append(is_green)
             eng_fea = torch.tensor(eng_fea).to(device)
             q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
             #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
             #huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
-            huLoss = F.l1_loss(preds[0]['boxes'], preds[0]['boxes'] * torch.ones(preds[0]['boxes'].shape, requires_grad=True).to(device) * 1.20)
+
+            targs = torch.zeros(preds[0]['boxes'].shape, requires_grad=True).to(device)
+            for idx in range(preds[0]['boxes'].shape[0]):
+               targs.data[idx] = self.scaleBB(preds[0]['boxes'][idx], 0.95, 1., device)
+            huLoss = F.l1_loss(preds[0]['boxes'], targs)
 
         # sum of regression and classification loss
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
+        comet.experiment.log_metric("pi", pi)
         return losses
 
     def validation_step1(self, batch, batch_idx):
@@ -431,7 +436,8 @@ class deepforest(pl.LightningModule):
                                         ground_df=ground_df,
                                         root_dir=root_dir,
                                         iou_threshold=iou_threshold,
-                                        show_plot=show_plot)
+                                        show_plot=show_plot,
+                                        savedir=savedir)
 
         return results
 
@@ -449,3 +455,29 @@ class deepforest(pl.LightningModule):
         box[:, 1] = box[:, 1] - box[:, 1]
 
         return box
+
+    def scaleBB(self, coords, scaleX, scaleY, device):
+        # takes in bounding box coordinates as [x1, y1, x2, y2] and returns a scaled bounding box with the same centroid
+        coords2 = coords.view(-1, 2).to(device)
+
+        # transpose coordinates and make them homogenous
+        coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]], requires_grad=True).to(device)]).to(device)
+
+        # calculate coordinates of centroid
+        # centroid = np.mean(coordsNp[:-1, :], axis=0)
+        centroid = torch.mean(coords2, 0)
+
+        # transform to translate to origin, scale, and translate back to centroid
+        trans = torch.tensor(
+            [[scaleX, 0, centroid[0] * (1 - scaleX)],
+             [0, scaleY, centroid[1] * (1 - scaleY)],
+             [0, 0, 1]]).to(device)
+
+        # multiply matrices
+        res = torch.mm(trans, coordsMatrix)[:2, :].T
+        res = res.contiguous()
+
+        # return data to original format of a list of tuples
+        res = res.view(1, 4)
+
+        return res
