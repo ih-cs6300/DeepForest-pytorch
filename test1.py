@@ -22,16 +22,16 @@ from deepforest import get_data
 from deepforest import utilities
 from deepforest import preprocess
 from deepforest import callbacks
-from deepforest.fol import FOL_green
+from deepforest.fol import FOL_green, FOL_competition
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 np.random.seed(42)
 n_classes = 1
-rules = [FOL_green(2, None, None)]
+rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.9, 0]
+pi_params = [0.995, 0.97]
 batch_size = 1
 C = 6
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #convert hand annotations from xml into retinanet format
 #The get_data function is only needed when fetching sample package data
@@ -125,10 +125,11 @@ m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = annotations_file
 m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
-m.config["score_thresh"] = 0.4
-m.config["train"]['epochs'] = 2
+m.config["score_thresh"] = 0.49  #0.4
+m.config["train"]['epochs'] = 6
 m.config["validation"]["csv_file"] = validation_file
 m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
+m.config["nms_thresh"] = 0.04  #0.05
 
 training_data = m.train_dataloader()
 n_train_batches = len(training_data) / batch_size
@@ -159,4 +160,7 @@ for f in file_list:
 
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
+comet.experiment.log_parameter('m.config', m.config)
+comet.experiment.log_parameter("m.config['train']", m.config['train'])
 comet.experiment.log_table('./pred_result/predictions.csv')
+comet.experiment.log_code(file_name='deepforest/main.py')
