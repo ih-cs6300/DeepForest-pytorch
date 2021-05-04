@@ -57,16 +57,16 @@ def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
             
         if savedir:
             plot.savefig("{}/{}.png".format(savedir, os.path.splitext(name)[0]))
-    
+
 
 def plot_predictions(image, df):
     """channel order is channels first for pytorch"""
-    
-    #Create a numeric index for coloring
+
+    # Create a numeric index for coloring
     df['numeric'] = df['label'].astype('category').cat.codes
 
-    #What size does the figure need to be in inches to fit the image?
-    dpi=300
+    # What size does the figure need to be in inches to fit the image?
+    dpi = 100
     height, width, nbands = image.shape
     figsize = width / float(dpi), height / float(dpi)
 
@@ -142,3 +142,4 @@ def label_to_color(label):
     color_dict[9] = "blueviolet"
 
     return color_dict[label]
+

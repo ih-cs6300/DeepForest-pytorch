@@ -29,7 +29,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.995, 0.97]
+pi_params = [0.7, 0]
 batch_size = 1
 C = 6
 
