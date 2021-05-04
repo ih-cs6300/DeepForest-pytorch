@@ -21,6 +21,7 @@ from deepforest import predict
 from deepforest import evaluate as evaluate_iou
 from deepforest.logic_nn import LogicNN
 import comet
+from itertools import combinations
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
@@ -63,7 +64,7 @@ class deepforest(pl.LightningModule):
         self.label_dict = label_dict
         self.numeric_to_label_dict = {v: k for k, v in label_dict.items()}
         self.batch_size = batch_size
-        self.logic_nn = LogicNN(network=model, rules=rules, rule_lambda=rule_lambdas, C=C)
+        self.logic_nn = LogicNN(self.device, network=model, rules=rules, rule_lambda=rule_lambdas, C=C)
         self.pi = 0
         self.n_train_batches = -1
         self.pi_params = pi_params
@@ -119,7 +120,7 @@ class deepforest(pl.LightningModule):
                      csv_file,
                      root_dir=None,
                      augment=False,
-                     shuffle=True,
+                     shuffle=False,
                      batch_size=1):
         """Create a tree dataset for inference
         Csv file format is .csv file with the columns "image_path", "xmin","ymin","xmax","ymax" for the image name and bounding box position.
@@ -157,7 +158,7 @@ class deepforest(pl.LightningModule):
         loader = self.load_dataset(csv_file=self.config["train"]["csv_file"],
                                    root_dir=self.config["train"]["root_dir"],
                                    augment=True,
-                                   shuffle=True,
+                                   shuffle=False,
                                    batch_size=self.config["batch_size"])
 
         return loader
@@ -304,15 +305,13 @@ class deepforest(pl.LightningModule):
         images: tuple of images.  image shape is [C, H, W].  image values [0, 1].  channel order RGB.
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")        
+
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         self.batch_cnt += 1
 
+        #calculate pi
         pi = self.get_pi(curr_iter)
-        print("pi: {}".format(pi))
-        box1 = torch.tensor([0, 0, 128, 256]).unsqueeze(0).to(device)
-        huLoss = 0
 
         # make sure model is in training mode
         self.model.train()
@@ -320,39 +319,28 @@ class deepforest(pl.LightningModule):
 
         # put model in eval mode
         self.model.eval()
-        #with torch.no_grad():
+
         # preds a list of dictionaries
         # one dictionary per image
         # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
-        preds = self.model.forward(images)          #if targets are included model is being trained
+        preds = self.model.forward(images)          #targets must be included in training mode
 
         # get special features
-        if len(preds[0]['labels']) > 0:
-            print("Adding Hu-Loss")
-            eng_fea = []
-            for img, img_dict in zip(images, preds):
-                for box in torch.round(img_dict['boxes']).int():
-                    # get mean of green channel inside bounding box
-                    # box format: [x1, y1, x2, y2]
-                    is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
+        eng_fea = []
+        for img, img_dict in zip(images, preds):
+            # generate special features
+            eng_fea = self.has_competition(images, preds)
 
-                    #box2 = self.translate_box(box.unsqueeze(0))
-                    #is_green = boxes.box_iou(box1, box2)
+        q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
-                    eng_fea.append(is_green)
-            eng_fea = torch.tensor(eng_fea).to(device)
-            q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
-            #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
-            #huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
+        huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
 
-            targs = torch.zeros(preds[0]['boxes'].shape, requires_grad=True).to(device)
-            for idx in range(preds[0]['boxes'].shape[0]):
-               targs.data[idx] = self.scaleBB(preds[0]['boxes'][idx], 0.95, 1., device)
-            huLoss = F.l1_loss(preds[0]['boxes'], targs)
-
-        # sum of regression and classification loss
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
+
+        self.log('pi', pi, prog_bar=True, on_step=True)
+        self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
+        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
         comet.experiment.log_metric("pi", pi)
         return losses
 
@@ -362,22 +350,26 @@ class deepforest(pl.LightningModule):
         """
         path, images, targets = batch
 
-        self.model.train()
-        loss_dict = self.model.forward(images, targets)
+        with torch.no_grad():
+            self.model.train()
+            loss_dict = self.model.forward(images, targets)
 
-        # sum of regression and classification loss
-        losses = sum([loss for loss in loss_dict.values()])
+            # sum of regression and classification loss
+            losses = sum([loss for loss in loss_dict.values()])
 
-        # Log loss
-        for key, value in loss_dict.items():
-            self.log("val_{}".format(key), value, on_epoch=True)
-
+            # Log loss
+            for key, value in loss_dict.items():
+                self.log("val_{}".format(key), value, prog_bar=True, on_epoch=True)
+                comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
+                
         return losses
 
     def validation_end1(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         comet_logs = {'val_loss': avg_loss}
 
+        with comet.experiment.validate():
+            comet.experiment.log_metric("val_loss", comet_logs)
         return {'avg_val_loss': avg_loss, 'log': comet_logs}
 
     def configure_optimizers(self):
@@ -455,6 +447,36 @@ class deepforest(pl.LightningModule):
         box[:, 1] = box[:, 1] - box[:, 1]
 
         return box
+
+    def has_competition(self, images, preds):
+        """
+        Description: finds trees with touching or intersecting crowns
+        images - list of images in batch
+        preds - list of prediction dictionaries with keys boxes, scores, and labels
+        trees_competing - list of competing trees; 0 => not competing, 1 => competing
+        """
+
+        trees_competing = [0] * preds[0]['boxes'].shape[0]
+
+        # dist = L2 norm of difference
+        # produces a tensor representing the radius of each bounding circle that contains the bounding box
+        bb_rads = torch.linalg.norm(preds[0]['boxes'][:, :2] - preds[0]['boxes'][:, 2:], ord=2, dim=1) / 2.
+
+        # calculate the centroid of each bounding box
+        bb_centroid = (preds[0]['boxes'][:, :2] + preds[0]['boxes'][:, 2:]) / 2.
+
+        # calculate distance between each set of bounding box centers
+        for pair in combinations(range(0, preds[0]['boxes'].shape[0]), 2):
+            dist = torch.linalg.norm(bb_centroid[pair[0]] - bb_centroid[pair[1]], ord = 2)
+
+            #if dist between two BB centroids is less than or equal to the sum of the radii of their crown bounding cirlces, then consider trees to be touching
+            if dist <= bb_rads[pair[0]] + bb_rads[pair[1]]:
+                trees_competing[pair[0]] = 1
+                trees_competing[pair[1]] = 1
+
+        res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
+
+        return res
 
     def scaleBB(self, coords, scaleX, scaleY, device):
         # takes in bounding box coordinates as [x1, y1, x2, y2] and returns a scaled bounding box with the same centroid

@@ -4,7 +4,7 @@ import numpy as np
 class FOL(object):
     """ First Order Logic (FOL) rules """
 
-    def __init__(self, K, input, fea):
+    def __init__(self, device, K, input, fea):
         """ Initialize
 
     : type K: int
@@ -18,6 +18,7 @@ class FOL(object):
         # fea - engineered feature set
         # fol statements divided into condition -> value
         self.K = K
+        self.device = device
 
     def conditions(self, X, F):
         results = torch.tensor(list(map(lambda x, f: self.condition_single(x, f), X, F)))
@@ -89,7 +90,7 @@ class FOL(object):
 # green rule
 # ----------------------------------------------------
 class FOL_green(FOL):
-    def __init__(self, K, input, fea):
+    def __init__(self, device, K, input, fea):
         """ Initialize
 
     :type K: int
@@ -100,7 +101,7 @@ class FOL_green(FOL):
                 fea[0]   : 1 if x=x1_but_x2, 0 otherwise
                 fea[1:2] : classifier.predict_p(x_2)
     """
-        super().__init__(K, input, fea)
+        super().__init__(device, K, input, fea)
 
 
 
@@ -157,3 +158,54 @@ class FOL_green(FOL):
         # returns a tensor batch_size x 1 of True or False
         # 0 means its labeled as a tree
         return x == 0
+
+
+# ---------------------------------------------------------------------------
+# Competition Rule
+# ---------------------------------------------------------------------------
+class FOL_competition(FOL):
+    def __init__(self, device, K, input, fea):
+        """ Initialize
+
+    :type K: int
+    :param K: the number of classes
+
+    :type fea: theano.tensor.dtensor4
+    :param fea: symbolic feature tensor, of shape 3
+                fea[0]   : 1 if x=x1_but_x2, 0 otherwise
+                fea[1:2] : classifier.predict_p(x_2)
+    """
+        super().__init__(device, K, input, fea)
+    def expon(self, w, X=None, F=None):
+        """
+        K - weight for rule
+        X - predicted values; BB corners
+        F - engineered features
+        """
+
+        # assume these are optimal values for height and width
+        optim_w = 70.
+        optim_h = 35.
+
+        # calculate the width and height of each bounding box
+        width = (X[:, 2] - X[:, 0]).unsqueeze(1)
+        height = (X[:, 3] - X[:, 1]).unsqueeze(1)
+
+        # calculate the weighted difference between the optimum values and the actual values
+        diff_x = w * (optim_w * torch.ones([X.shape[0], 1]).to(self.device) - width)
+        diff_y = w * (optim_h * torch.ones([X.shape[0], 1]).to(self.device) - height)
+        #diff_x = diff_x.to(self.device)
+        #diff_y = diff_y.to(self.device)
+
+        # create one matrix with two columns by concatenating diff_x and diff_y
+        temp = torch.cat([diff_x, diff_y], dim=1)
+
+        # create a res matrix containing all zeros
+        # first column will be the x differences, second column will be the y differences
+        res = torch.zeros(X.shape[0], 2).to(self.device)
+
+        # set rows where trees where growing in close proximity (competition) to diff values
+        # all other rows stay zero
+        res[F, :] = temp[F, :]
+
+        return res
