@@ -29,7 +29,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.7, 0]
+pi_params = [0.70, 0]
 batch_size = 1
 C = 6
 
@@ -125,11 +125,11 @@ m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = annotations_file
 m.config["train"]["root_dir"] = os.path.dirname(annotations_file)
-m.config["score_thresh"] = 0.49  #0.4
-m.config["train"]['epochs'] = 6
+m.config["score_thresh"] = 0.4
+m.config["train"]['epochs'] = 3
 m.config["validation"]["csv_file"] = validation_file
 m.config["validation"]["root_dir"] = os.path.dirname(validation_file)
-m.config["nms_thresh"] = 0.04  #0.05
+m.config["nms_thresh"] = 0.05
 
 training_data = m.train_dataloader()
 n_train_batches = len(training_data) / batch_size
@@ -158,6 +158,7 @@ file_list = [f for f in os.listdir(save_dir) if f.split(".")[1] == 'png']
 for f in file_list:
    comet.experiment.log_image('./pred_result/' + f)
 
+#comet_logger.experiment.add_tag("")
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
