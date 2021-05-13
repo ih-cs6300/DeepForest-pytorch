@@ -86,7 +86,7 @@ def plot_predictions(image, df):
     return fig, ax
 
 
-def create_box(xmin, ymin, height, width, color="cyan", linewidth=0.5):
+def create_box(xmin, ymin, height, width, color="cyan", linewidth=1.0):
     rect = patches.Rectangle((xmin, ymin),
                              height,
                              width,

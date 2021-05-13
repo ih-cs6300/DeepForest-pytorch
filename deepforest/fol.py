@@ -184,8 +184,8 @@ class FOL_competition(FOL):
         """
 
         # assume these are optimal values for height and width
-        optim_w = 70.
-        optim_h = 35.
+        optim_w = 20.
+        optim_h = 20.
 
         # calculate the width and height of each bounding box
         width = (X[:, 2] - X[:, 0]).unsqueeze(1)
