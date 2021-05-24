@@ -101,7 +101,7 @@ class deepforest(pl.LightningModule):
         self.trainer = pl.Trainer(logger=logger,
                                   max_epochs=self.config["train"]["epochs"],
                                   gpus=self.config["gpus"],
-                                  checkpoint_callback=False,
+                                  checkpoint_callback=True,
                                   distributed_backend=self.config["distributed_backend"],
                                   fast_dev_run=self.config["train"]["fast_dev_run"],
                                   callbacks=callbacks,
@@ -327,21 +327,21 @@ class deepforest(pl.LightningModule):
         preds = self.model.forward(images)          #targets must be included in training mode
 
         # get special features
-        #eng_fea = []
-        #for img, img_dict in zip(images, preds):
-        #    # generate special features
-        #    eng_fea = self.has_competition(images, preds)
+        eng_fea = []
+        for img, img_dict in zip(images, preds):
+            # generate special features
+            eng_fea = self.has_competition(images, preds)
 
-        #q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
+        q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
-        #huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
+        huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
 
-        pi = 0
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) #+ pi * huLoss
+        #pi = 0
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
-        #self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
         comet.experiment.log_metric("pi", pi)
         return losses
 
@@ -362,7 +362,8 @@ class deepforest(pl.LightningModule):
             for key, value in loss_dict.items():
                 self.log("val_{}".format(key), value, prog_bar=True, on_epoch=True)
                 comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
-                
+
+        self.log("val_loss", losses)                
         return losses
 
     def validation_end1(self, outputs):

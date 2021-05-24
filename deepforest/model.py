@@ -47,25 +47,28 @@ def create_model(num_classes, nms_thresh, score_thresh):
     """
     backbone = load_backbone()
 
-    anchor_sizes = tuple((x, int(x * 2 ** (1.0 / 3)), int(x * 2 ** (2.0 / 3))) for x in [32, 64, 128, 256, 512])
-    aspect_ratios = (tuple(np.linspace(0.25, 2.5, 12)),) * len(anchor_sizes)
-    anchor_generator = create_anchor_generator(anchor_sizes, aspect_ratios)
+    #anchor_sizes = tuple((x, int(x * 2 ** (1.0 / 3)), int(x * 2 ** (2.0 / 3))) for x in [32, 64, 128, 256, 512])
+
+    #aspect_ratios = (tuple(np.linspace(0.25, 2.5, 6)),) * len(anchor_sizes)
+    #aspect_ratios=((0.5, 1.0, 2.0),) * len(anchor_sizes)
+
+    #anchor_generator = create_anchor_generator(anchor_sizes, aspect_ratios)
 
     
     model = RetinaNet(backbone.backbone, num_classes=num_classes)
     #model = RetinaNet(backbone.backbone, num_classes=num_classes, anchor_generator=anchor_generator)
 
-    in_channels = model.head.classification_head.cls_logits.in_channels
-    out_channels = model.head.classification_head.cls_logits.out_channels
-    kernel_size = model.head.classification_head.cls_logits.in_channels
-    stride = model.head.classification_head.cls_logits.stride
-    padding = model.head.classification_head.cls_logits.padding
+    #in_channels = model.head.classification_head.cls_logits.in_channels
+    #out_channels = model.head.classification_head.cls_logits.out_channels
+    #kernel_size = model.head.classification_head.cls_logits.in_channels
+    #stride = model.head.classification_head.cls_logits.stride
+    #padding = model.head.classification_head.cls_logits.padding
     #model.head.classification_head.cls_logits = torch.nn.Conv2d(in_channels, 36, kernel_size=kernel_size, stride=stride, padding=padding)
 
-    in_channels = model.head.regression_head.bbox_reg.in_channels
-    kernel_size = model.head.regression_head.bbox_reg.kernel_size
-    stride = model.head.regression_head.bbox_reg.stride
-    padding = model.head.regression_head.bbox_reg.padding
+    #in_channels = model.head.regression_head.bbox_reg.in_channels
+    #kernel_size = model.head.regression_head.bbox_reg.kernel_size
+    #stride = model.head.regression_head.bbox_reg.stride
+    #padding = model.head.regression_head.bbox_reg.padding
     #model.head.regression_head.bbox_reg = torch.nn.Conv2d(in_channels, 144, kernel_size=kernel_size, stride=stride, padding=padding)
 
     model.nms_thresh = nms_thresh

@@ -10,6 +10,7 @@ train_data_folder/
 train_data_folder2/
 annotations/
 pred_result/
+pred_result2/
 .idea/
 comet_test.py
 comet.py

@@ -74,3 +74,4 @@ class TreeDataset(Dataset):
             image, targets = self.transform(image, targets)
 
         return self.image_names[idx], image, targets
+
