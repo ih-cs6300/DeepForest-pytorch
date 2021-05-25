@@ -5,4 +5,10 @@
 current_release.csv
 *.pl
 *.pt
-tests/__pycache__
+annotations/
+comet.py
+pred_result/
+pred_result2/
+train_data_folder/
+train_data_folder2/
+tests/
