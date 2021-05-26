@@ -1,8 +1,10 @@
-
-# load the modules
+# load modules
+import comet
 import os
 import time
 import numpy as np
+import torch
+from pytorch_lightning.callbacks import ModelCheckpoint
 from deepforest import main
 from deepforest import get_data
 from deepforest import utilities
@@ -16,7 +18,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.95, 0]
+pi_params = [0.96, 0]
 batch_size = 1
 C = 6
 
@@ -25,7 +27,7 @@ data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
 
 train_csv = os.path.join(data_dir, "train.csv")
 val_csv = os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(data_dir, "test.csv")
+test_csv = os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -35,7 +37,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = data_dir
 m.config["score_thresh"] = 0.4
-m.config["train"]['epochs'] = 3
+m.config["train"]['epochs'] = 2
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = data_dir
 m.config["nms_thresh"] = 0.05
@@ -47,7 +49,8 @@ n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
 
 # create a pytorch lighting trainer used to training
-m.create_trainer()
+checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
+m.create_trainer(callbacks=[checkpoint_callback])
 
 # load the lastest release model
 #m.use_release()
@@ -63,18 +66,18 @@ try:
    os.mkdir(save_dir)
 except OSError as error:
    pass
+results = m.evaluate(test_csv, data_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
-results = m.evaluate(annotations_file, os.path.dirname(annotations_file), iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
-file_list = [f for f in os.listdir(save_dir) if f.split(".")[1] == 'png']
-
-for f in file_list:
+for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet_logger.experiment.add_tag("big dataset")
+comet.experiment.add_tags(["big_ds", "nrm_as_sc"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
-comet.experiment.log_table('./pred_result2/predictions.csv')
+comet.experiment.log_table('./pred_result/predictions.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
+

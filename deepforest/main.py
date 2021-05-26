@@ -1,6 +1,7 @@
 # entry point for deepforest model
 import os
 import pandas as pd
+import numpy as np
 from skimage import io
 import torch
 from torch.nn import functional as F
@@ -19,7 +20,8 @@ from deepforest import model
 from deepforest import predict
 from deepforest import evaluate as evaluate_iou
 from deepforest.logic_nn import LogicNN
-
+import comet
+from itertools import combinations
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
@@ -62,11 +64,12 @@ class deepforest(pl.LightningModule):
         self.label_dict = label_dict
         self.numeric_to_label_dict = {v: k for k, v in label_dict.items()}
         self.batch_size = batch_size
-        self.logic_nn = LogicNN(network=model, rules=rules, rule_lambda=rule_lambdas, C=C)
+        self.logic_nn = LogicNN(self.device, network=model, rules=rules, rule_lambda=rule_lambdas, C=C)
         self.pi = 0
         self.n_train_batches = -1
         self.pi_params = pi_params
         self.batch_cnt = 0
+        
 
     def use_release(self):
         """Use the latest DeepForest model release from github and load model.
@@ -98,7 +101,7 @@ class deepforest(pl.LightningModule):
         self.trainer = pl.Trainer(logger=logger,
                                   max_epochs=self.config["train"]["epochs"],
                                   gpus=self.config["gpus"],
-                                  checkpoint_callback=False,
+                                  checkpoint_callback=True,
                                   distributed_backend=self.config["distributed_backend"],
                                   fast_dev_run=self.config["train"]["fast_dev_run"],
                                   callbacks=callbacks,
@@ -117,7 +120,7 @@ class deepforest(pl.LightningModule):
                      csv_file,
                      root_dir=None,
                      augment=False,
-                     shuffle=True,
+                     shuffle=False,
                      batch_size=1):
         """Create a tree dataset for inference
         Csv file format is .csv file with the columns "image_path", "xmin","ymin","xmax","ymax" for the image name and bounding box position.
@@ -155,7 +158,7 @@ class deepforest(pl.LightningModule):
         loader = self.load_dataset(csv_file=self.config["train"]["csv_file"],
                                    root_dir=self.config["train"]["root_dir"],
                                    augment=True,
-                                   shuffle=True,
+                                   shuffle=False,
                                    batch_size=self.config["batch_size"])
 
         return loader
@@ -302,13 +305,13 @@ class deepforest(pl.LightningModule):
         images: tuple of images.  image shape is [C, H, W].  image values [0, 1].  channel order RGB.
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
+
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         self.batch_cnt += 1
 
+        #calculate pi
         pi = self.get_pi(curr_iter)
-        print("pi: {}".format(pi))
-        box1 = torch.tensor([0, 0, 128, 256]).unsqueeze(0)
 
         # make sure model is in training mode
         self.model.train()
@@ -316,57 +319,59 @@ class deepforest(pl.LightningModule):
 
         # put model in eval mode
         self.model.eval()
-        #with torch.no_grad():
+
         # preds a list of dictionaries
         # one dictionary per image
-        # each dictionary has keys 'boxes', 'scores', and 'labels'hu
+        # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
-        preds = self.model.forward(images)          #if targets are included model is being trained
+        preds = self.model.forward(images)          #targets must be included in training mode
 
         # get special features
         eng_fea = []
         for img, img_dict in zip(images, preds):
-            for box in torch.round(img_dict['boxes']).int():
-                # get mean of green channel inside bounding box
-                # box format: [x1, y1, x2, y2]
-                is_green = torch.mean(img[1, box[1]:box[3] + 1, box[0]:box[2] + 1])
+            # generate special features
+            eng_fea = self.has_competition(images, preds)
 
-                #box2 = self.translate_box(box.unsqueeze(0))
-                #is_green = boxes.box_iou(box1, box2)
+        q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
-                eng_fea.append(is_green)
-        eng_fea = torch.tensor(eng_fea)
-        q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea])
-        #huLoss = F.binary_cross_entropy(preds[0]['labels'].float(), q_y_pred.float())
-        huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
-        #huLoss.requires_grad = True
-        #losses = huLoss
-        # sum of regression and classification loss
+        huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
+
+        #pi = 0
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
+
+        self.log('pi', pi, prog_bar=True, on_step=True)
+        self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
+        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        comet.experiment.log_metric("pi", pi)
         return losses
 
-    def validation_step1(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx):
         """Train on a loaded dataset
 
         """
         path, images, targets = batch
 
-        self.model.train()
-        loss_dict = self.model.forward(images, targets)
+        with torch.no_grad():
+            self.model.train()
+            loss_dict = self.model.forward(images, targets)
 
-        # sum of regression and classification loss
-        losses = sum([loss for loss in loss_dict.values()])
+            # sum of regression and classification loss
+            losses = sum([loss for loss in loss_dict.values()])
 
-        # Log loss
-        for key, value in loss_dict.items():
-            self.log("val_{}".format(key), value, on_epoch=True)
+            # Log loss
+            for key, value in loss_dict.items():
+                self.log("val_{}".format(key), value, prog_bar=True, on_epoch=True)
+                comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
 
+        self.log("val_loss", losses)                
         return losses
 
     def validation_end1(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         comet_logs = {'val_loss': avg_loss}
 
+        with comet.experiment.validate():
+            comet.experiment.log_metric("val_loss", comet_logs)
         return {'avg_val_loss': avg_loss, 'log': comet_logs}
 
     def configure_optimizers(self):
@@ -425,7 +430,8 @@ class deepforest(pl.LightningModule):
                                         ground_df=ground_df,
                                         root_dir=root_dir,
                                         iou_threshold=iou_threshold,
-                                        show_plot=show_plot)
+                                        show_plot=show_plot,
+                                        savedir=savedir)
 
         return results
 
@@ -443,3 +449,60 @@ class deepforest(pl.LightningModule):
         box[:, 1] = box[:, 1] - box[:, 1]
 
         return box
+
+    def has_competition(self, images, preds):
+        """
+        Description: finds trees with touching or intersecting crowns
+        images - list of images in batch
+        preds - list of prediction dictionaries with keys boxes, scores, and labels
+        trees_competing - list of competing trees; 0 => not competing, 1 => competing
+        """
+
+        trees_competing = [0] * preds[0]['boxes'].shape[0]
+
+        # dist = L2 norm of difference
+        # produces a tensor representing the radius of each bounding circle that contains the bounding box
+        bb_rads = torch.linalg.norm(preds[0]['boxes'][:, :2] - preds[0]['boxes'][:, 2:], ord=2, dim=1) / 2.
+
+        # calculate the centroid of each bounding box
+        bb_centroid = (preds[0]['boxes'][:, :2] + preds[0]['boxes'][:, 2:]) / 2.
+
+        # calculate distance between each set of bounding box centers
+        for pair in combinations(range(0, preds[0]['boxes'].shape[0]), 2):
+            dist = torch.linalg.norm(bb_centroid[pair[0]] - bb_centroid[pair[1]], ord = 2)
+
+            #if dist between two BB centroids is less than or equal to the sum of the radii of their crown bounding cirlces, then consider trees to be touching
+            if dist <= bb_rads[pair[0]] + bb_rads[pair[1]]:
+                trees_competing[pair[0]] = 1
+                trees_competing[pair[1]] = 1
+
+        res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
+
+        return res
+
+    def scaleBB(self, coords, scaleX, scaleY, device):
+        # takes in bounding box coordinates as [x1, y1, x2, y2] and returns a scaled bounding box with the same centroid
+        coords2 = coords.view(-1, 2).to(device)
+
+        # transpose coordinates and make them homogenous
+        coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]], requires_grad=True).to(device)]).to(device)
+
+        # calculate coordinates of centroid
+        # centroid = np.mean(coordsNp[:-1, :], axis=0)
+        centroid = torch.mean(coords2, 0)
+
+        # transform to translate to origin, scale, and translate back to centroid
+        trans = torch.tensor(
+            [[scaleX, 0, centroid[0] * (1 - scaleX)],
+             [0, scaleY, centroid[1] * (1 - scaleY)],
+             [0, 0, 1]]).to(device)
+
+        # multiply matrices
+        res = torch.mm(trans, coordsMatrix)[:2, :].T
+        res = res.contiguous()
+
+        # return data to original format of a list of tuples
+        res = res.view(1, 4)
+
+        return res
+
