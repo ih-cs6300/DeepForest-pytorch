@@ -342,7 +342,8 @@ class deepforest(pl.LightningModule):
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
         self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
-        comet.experiment.log_metric("pi", pi)
+        with comet.experiment.train():
+            comet.experiment.log_metric("pi", pi)
         return losses
 
     def validation_step(self, batch, batch_idx):
@@ -361,7 +362,8 @@ class deepforest(pl.LightningModule):
             # Log loss
             for key, value in loss_dict.items():
                 self.log("val_{}".format(key), value, prog_bar=True, on_epoch=True)
-                comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
+                with comet.experiment.validate():
+                    comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
 
         self.log("val_loss", losses)                
         return losses
