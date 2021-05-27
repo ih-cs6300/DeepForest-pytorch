@@ -10,7 +10,7 @@ from deepforest import get_data
 from deepforest import utilities
 from deepforest import preprocess
 from deepforest import callbacks
-from deepforest.fol import FOL_green, FOL_competition
+from deepforest.fol import FOL_green, FOL_competition, FOL_bbox_2big
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -18,7 +18,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.96, 0]
+pi_params = [0.85, 0]
 batch_size = 1
 C = 6
 
@@ -50,7 +50,8 @@ m.config["train"]["n_train_batches"] = n_train_batches
 
 # create a pytorch lighting trainer used to training
 checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
-m.create_trainer(callbacks=[checkpoint_callback])
+#m.create_trainer(callbacks=[checkpoint_callback])
+m.create_trainer()
 
 # load the lastest release model
 #m.use_release()
@@ -73,11 +74,10 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["big_ds", "nrm_as_sc"])
+comet.experiment.add_tags(["big_ds", "bbox_2big_rle"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
 comet.experiment.log_table('./pred_result/predictions.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
-

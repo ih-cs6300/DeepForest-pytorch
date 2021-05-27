@@ -330,22 +330,26 @@ class deepforest(pl.LightningModule):
         eng_fea = []
         for img, img_dict in zip(images, preds):
             # generate special features
-            eng_fea = self.has_competition(images, preds)
+            eng_fea = self.bbox_2big(images, preds)
+        
+        if (len(preds[0]['scores']) > 0):
+            q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)
+            huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
+        else:
+            huLoss = torch.tensor(2., requires_grad=True).to(self.device)
 
-        q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
-
-        huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
-
-        #pi = 0
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
         self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
-        comet.experiment.log_metric("pi", pi)
+
+        with comet.experiment.train():
+            comet.experiment.log_metric("pi", pi)
+
         return losses
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step1(self, batch, batch_idx):
         """Train on a loaded dataset
 
         """
@@ -361,7 +365,8 @@ class deepforest(pl.LightningModule):
             # Log loss
             for key, value in loss_dict.items():
                 self.log("val_{}".format(key), value, prog_bar=True, on_epoch=True)
-                comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
+                with comet.experiment.validate():
+                    comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
 
         self.log("val_loss", losses)                
         return losses
@@ -506,3 +511,21 @@ class deepforest(pl.LightningModule):
 
         return res
 
+
+    def bbox_2big(self, images, preds):
+        """
+        Description: Find predictions where the bounding box is infeasibily large
+        images - list of images in batch
+        preds - list of prediction dictionaries withkeys boxes, scores, and labels
+        """   
+
+        sigma = torch.nn.Sigmoid()
+
+        # calculate the area of each bounding box
+        x_len = preds[0]['boxes'][:, 2] - preds[0]['boxes'][:, 0]
+        y_len = preds[0]['boxes'][:, 3] - preds[0]['boxes'][:, 1]
+        bb_area = x_len * y_len
+
+        #return the index of bboxes with areas greater than X
+        res = sigma(400 - bb_area)
+        return res
