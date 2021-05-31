@@ -5,6 +5,7 @@ import time
 import numpy as np
 import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pygit2 import Repository
 from deepforest import main
 from deepforest import get_data
 from deepforest import utilities
@@ -18,7 +19,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.96, 0]
+pi_params = [0.85, 0]
 batch_size = 1
 C = 6
 
@@ -77,6 +78,11 @@ comet.experiment.add_tags(["big_ds", "nrm_as_sc"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
+#for key in m.config['train'].keys():
+#   comet.experiment.log_parameter(key, m.config['train'][key]) 
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
+comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
 comet.experiment.log_table('./pred_result/predictions.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
+comet.experiment.log_code(file_name='deepforest/fol.py')
+comet.experiment.log_code(file_name='logic_nn.py')
