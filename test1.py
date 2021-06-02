@@ -4,6 +4,7 @@ import os
 import time
 import numpy as np
 import torch
+from pygit2 import Repository
 from pytorch_lightning.callbacks import ModelCheckpoint
 from deepforest import main
 from deepforest import get_data
@@ -18,7 +19,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.85, 0]
+pi_params = [0.9, 0]
 batch_size = 1
 C = 6
 
@@ -37,7 +38,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = data_dir
 m.config["score_thresh"] = 0.4
-m.config["train"]['epochs'] = 2
+m.config["train"]['epochs'] = 3
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = data_dir
 m.config["nms_thresh"] = 0.05
@@ -79,5 +80,8 @@ comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
+comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
 comet.experiment.log_table('./pred_result/predictions.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
+comet.experiment.log_code(file_name='deepforest/fol.py')
+comet.experiment.log_code(file_name='deepforest/logic_nn.py')

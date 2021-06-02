@@ -33,7 +33,7 @@ def plot_prediction_and_targets(image, predictions, targets, image_name, savedir
     plot, ax = plot_predictions(image, prediction_df)
     target_df = format_boxes(targets, scores=False)
     plot = add_annotations(plot, ax, target_df)
-    plot.savefig("{}/{}.png".format(savedir, image_name), dpi=300)
+    plot.savefig("{}/{}.png".format(savedir, image_name), dpi=100)
     return "{}/{}.png".format(savedir, image_name)
 
 
@@ -57,16 +57,16 @@ def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
             
         if savedir:
             plot.savefig("{}/{}.png".format(savedir, os.path.splitext(name)[0]))
-    
+
 
 def plot_predictions(image, df):
     """channel order is channels first for pytorch"""
-    
-    #Create a numeric index for coloring
+
+    # Create a numeric index for coloring
     df['numeric'] = df['label'].astype('category').cat.codes
 
-    #What size does the figure need to be in inches to fit the image?
-    dpi=300
+    # What size does the figure need to be in inches to fit the image?
+    dpi = 100
     height, width, nbands = image.shape
     figsize = width / float(dpi), height / float(dpi)
 
@@ -86,7 +86,7 @@ def plot_predictions(image, df):
     return fig, ax
 
 
-def create_box(xmin, ymin, height, width, color="cyan", linewidth=0.5):
+def create_box(xmin, ymin, height, width, color="cyan", linewidth=1.0):
     rect = patches.Rectangle((xmin, ymin),
                              height,
                              width,
@@ -142,3 +142,5 @@ def label_to_color(label):
     color_dict[9] = "blueviolet"
 
     return color_dict[label]
+
+
