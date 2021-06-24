@@ -7,6 +7,7 @@ import torch
 from torch.nn import functional as F
 
 from datetime import datetime
+#import cv2
 from torchvision.ops import boxes
 
 import pytorch_lightning as pl
@@ -19,6 +20,7 @@ from deepforest import model
 from deepforest import predict
 from deepforest import evaluate as evaluate_iou
 from deepforest.logic_nn import LogicNN
+import comet
 from itertools import combinations
 
 class deepforest(pl.LightningModule):
@@ -303,6 +305,7 @@ class deepforest(pl.LightningModule):
         images: tuple of images.  image shape is [C, H, W].  image values [0, 1].  channel order RGB.
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
+
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         #self.batch_cnt += 1
@@ -342,11 +345,14 @@ class deepforest(pl.LightningModule):
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
         self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+
+        with comet.experiment.train():
+            comet.experiment.log_metric("pi", pi)
+
         return losses
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step1(self, batch, batch_idx):
         """Train on a loaded dataset
-        loss_dict example = {'classification': tensor(1.1290, device='cuda:0'), 'bbox_regression': tensor(0.6080, device='cuda:0')}
 
         """
         path, images, targets = batch
@@ -360,17 +366,20 @@ class deepforest(pl.LightningModule):
 
             # Log loss
             for key, value in loss_dict.items():
-                self.log("val_{}".format(key), value, on_epoch=True)
+                self.log("val_{}".format(key), value, prog_bar=True, on_epoch=True)
+                with comet.experiment.validate():
+                    comet.experiment.log_metric("val_{}".format(key), value, step=batch_idx)
 
         self.log("val_loss", losses)                
         return losses
 
-    def validation_epoch_end(self, outputs):
-        avg_loss = torch.stack([outputs[0], outputs[1]]).mean()
-        self.log('class_loss', outputs[0])
-        self.log('reg_loss', outputs[1])
-        self.log('avg_loss', avg_loss)
-        return {'avg_loss': avg_loss}
+    def validation_end1(self, outputs):
+        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        comet_logs = {'val_loss': avg_loss}
+
+        with comet.experiment.validate():
+            comet.experiment.log_metric("val_loss", comet_logs)
+        return {'avg_val_loss': avg_loss, 'log': comet_logs}
 
     def configure_optimizers(self):
         self.optimizer = optim.SGD(self.model.parameters(),
