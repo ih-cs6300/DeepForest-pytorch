@@ -306,7 +306,7 @@ class deepforest(pl.LightningModule):
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         #self.batch_cnt += 1
-        if self.global_step > 1500:
+        if self.global_step > self.config["beg_incr_pi"]:
            self.batch_cnt += 1
 
         #calculate pi
@@ -367,9 +367,14 @@ class deepforest(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([outputs[0], outputs[1]]).mean()
-        self.log('class_loss', outputs[0])
-        self.log('reg_loss', outputs[1])
-        self.log('avg_loss', avg_loss)
+        if torch.isnan(outputs[0]) or torch.isnan(outputs[1]) or torch.isnan(avg_loss):
+           self.log('class_loss', torch.tensor(1.1e6))
+           self.log('reg_loss', torch.tensor(1.1e6))
+           self.log('avg_loss', torch.tensor(1.1e6))
+        else:
+           self.log('class_loss', outputs[0])
+           self.log('reg_loss', outputs[1])
+           self.log('avg_loss', avg_loss)
         return {'avg_loss': avg_loss}
 
     def configure_optimizers(self):

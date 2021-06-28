@@ -1,3 +1,6 @@
+# for debugging
+#RAY_RAYLET_GDB=1 RAY_RAYLET_TMUX=1 python
+
 # load modules
 import os
 import time
@@ -20,7 +23,7 @@ from ray.tune.integration.pytorch_lightning import TuneReportCallback, TuneRepor
 
 
 def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
-   print("here 2")
+   print("here 0")
    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
    np.random.seed(42)
@@ -60,21 +63,18 @@ def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
    #checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
    raytune_callback = TuneReportCallback(metrics={"val_class_loss": "class_loss", "val_reg_loss": 'reg_loss', "val_avg_loss":'avg_loss'}, on="validation_end")
 
-   print("here 3")
    m.create_trainer(callbacks=[raytune_callback])
    m.trainer.fit(m)
 
 
 def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
-    print("here 0")
     config = {
-        "pi_0": tune.quniform(0.50, 0.99, 0.01),
-        "pi_1": tune.quniform(0, 10, 0.01),
-        "C": tune.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+        "pi_0": tune.uniform(0.50, 0.99),
+        "pi_1": 0,
+        "C": tune.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
         "lr": tune.loguniform(1e-4, 1e-1),
-        "score_thresh": tune.qrandn(0.4, 0.1, 0.02),
-        "nms_thresh": tune.quniform(0.03, 0.6, 0.01),
-        "beg_incr_pi": tune.choice([500, 1000, 1500, 2000]) 
+        "score_thresh": 0.4,
+        "nms_thresh": 0.05
     }
 
     scheduler = ASHAScheduler(
@@ -86,26 +86,10 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
         parameter_columns=["pi_0", "pi_1", "lr", "C", "score_thresh", "nms_thresh"],
         metric_columns=["val_class_loss", "val_reg_loss", "val_avg_loss", "training_iteration"])
 
-    print("here 1")
-
-    analysis = tune.run(
-        tune.with_parameters(
-            train_deepforest_tune,
-            num_epochs=num_epochs,
-            num_gpus=gpus_per_trial),
-        resources_per_trial={
-            "cpu": 1,
-            "gpu": gpus_per_trial
-        },
-        metric="val_avg_loss",
-        mode="min",
-        config=config,
-        num_samples=num_samples,
-        scheduler=scheduler,
-        progress_reporter=reporter,
-        name="tune_deepforest_asha")
+    analysis = tune.run(train_deepforest_tune, config=config, verbose=3, resume=False)
 
     print("Best hyperparameters found were: ", analysis.best_config)
 
-tune_deepforest_asha(3, 3, 1)
+tune_deepforest_asha(3, 2, 1)
+
 

@@ -1,0 +1,13 @@
+# deep forest conda environment
+# steps needed to get raytune working again
+
+conda env remove --name deepforest1
+conda clean --all
+conda create --name deepforest1 python=3.7
+conda activate deepforest1
+conda install pytorch torchvision -c pytorch
+pip3 install "ray[tune]" pytorch-lightning
+pip3 install pygit2
+pip3 install comet_ml
+pip3 install -e DeepForest-pytorch
+
