@@ -17,3 +17,8 @@ pred_result2/
 .idea/
 comet_test.py
 comet.py
+
+.bash_history
+.cache/
+.python_history
+df_img1/

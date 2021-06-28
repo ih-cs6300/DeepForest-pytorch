@@ -13,6 +13,7 @@ from deepforest import callbacks
 from deepforest.fol import FOL_green, FOL_competition, FOL_bbox_2big
 
 # packages needed for tuning
+import ray
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler, PopulationBasedTraining
@@ -51,6 +52,7 @@ def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
    m.config["validation"]["root_dir"] = data_dir
    m.config["score_thresh"] = config['score_thresh']    # old value 0.4
    m.config["nms_thresh"] =  config['nms_thresh']       # old value 0.05
+   m.config["train"]["beg_incr_pi"] = config['beg_incr_pi']
 
    training_data = m.train_dataloader()
    n_train_batches = len(training_data) / batch_size
@@ -66,10 +68,9 @@ def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
 
 
 def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
-    print("here 0")
     config = {
         "pi_0": tune.quniform(0.50, 0.99, 0.01),
-        "pi_1": tune.quniform(0, 10, 0.01),
+        "pi_1": tune.quniform(0, 0.10, 0.01),
         "C": tune.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
         "lr": tune.loguniform(1e-4, 1e-1),
         "score_thresh": tune.qrandn(0.4, 0.1, 0.02),
@@ -85,8 +86,6 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
     reporter = CLIReporter(
         parameter_columns=["pi_0", "pi_1", "lr", "C", "score_thresh", "nms_thresh"],
         metric_columns=["val_class_loss", "val_reg_loss", "val_avg_loss", "training_iteration"])
-
-    print("here 1")
 
     analysis = tune.run(
         tune.with_parameters(
@@ -107,5 +106,7 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
 
     print("Best hyperparameters found were: ", analysis.best_config)
 
+# doesn't work without the next line
+ray.init(num_cpus=1, num_gpus=1)
 tune_deepforest_asha(3, 3, 1)
 
