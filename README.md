@@ -1,20 +1,28 @@
 # DeepForest-pytorch
-## Branch: bbox_size
+## Branch: bbox_size_tune
 
-* tries to train the neural network to prefer bounding boxes of a reduced area (< 400 square pixels)
+* this branch uses ray tune for hyperparameter tuning
 
-* uses hu FOL rules
+* files come from https://github.com/NERSC/slurm-ray-cluster
 
-* this version is for hipergator
+* 3 files needed
+    start-head.sh <br>
+    start-worker.sh <br>
+    submit-ray-cluster.sbatch <br>
 
-* everything works
+* place the following line inside code for it to run without this error
 
-* conda environment causes core dump on hipergator at the end of the run
+ File "/home/iharmon1/.conda/envs/deepforest1/lib/python3.7/signal.py", line 47, in signal
+    handler = _signal.signal(_enum_to_int(signalnum), _enum_to_int(handler))
+    ValueError: signal only works in main thread
 
-* alterations made in main.py
+    `os.environ["SLURM_JOB_NAME"] = "bash"`
 
-* results stored on comet.ml
+* edit the number of samples in tune1.py
 
-* tags "bbox_2big_rle", "big_ds"
+* edit submit-ray-cluster.sbatch to load conda environment
 
-* trained on entire ds
+* job parameters in submit-ray-cluster.sbatch
+
+* to run: `sbatch submit-ray-cluster.sbatch` 
+

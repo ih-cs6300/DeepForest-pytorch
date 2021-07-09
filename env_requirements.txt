@@ -9,5 +9,6 @@ conda install pytorch torchvision -c pytorch
 pip3 install "ray[tune]" pytorch-lightning
 pip3 install pygit2
 pip3 install comet_ml
+pip3 install imagecodecs
 pip3 install -e DeepForest-pytorch
 

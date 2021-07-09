@@ -21,7 +21,7 @@ from ray.tune.integration.pytorch_lightning import TuneReportCallback, TuneRepor
 
 
 def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
-   print("here 2")
+   os.environ["SLURM_JOB_NAME"] = "bash"
    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
    np.random.seed(42)
@@ -62,12 +62,12 @@ def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
    #checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
    raytune_callback = TuneReportCallback(metrics={"val_class_loss": "class_loss", "val_reg_loss": 'reg_loss', "val_avg_loss":'avg_loss'}, on="validation_end")
 
-   print("here 3")
    m.create_trainer(callbacks=[raytune_callback])
    m.trainer.fit(m)
 
 
 def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
+    os.environ["SLURM_JOB_NAME"] = "bash"
     config = {
         "pi_0": tune.quniform(0.50, 0.99, 0.01),
         "pi_1": tune.quniform(0, 0.10, 0.01),
@@ -80,11 +80,11 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
 
     scheduler = ASHAScheduler(
         max_t=3,
-        grace_period=2,
+        grace_period=1,
         reduction_factor=2)
 
     reporter = CLIReporter(
-        parameter_columns=["pi_0", "pi_1", "lr", "C", "score_thresh", "nms_thresh"],
+        parameter_columns=["pi_0", "pi_1", "lr", "C", "score_thresh", "nms_thresh", "beg_incr_pi"],
         metric_columns=["val_class_loss", "val_reg_loss", "val_avg_loss", "training_iteration"])
 
     analysis = tune.run(
@@ -102,11 +102,16 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
         num_samples=num_samples,
         scheduler=scheduler,
         progress_reporter=reporter,
+        local_dir='/blue/daisyw/iharmon1/data',
         name="tune_deepforest_asha")
 
     print("Best hyperparameters found were: ", analysis.best_config)
 
+
 # doesn't work without the next line
-ray.init(num_cpus=1, num_gpus=1)
+#ray.init(num_cpus=1, num_gpus=1)
+ray.init(address='auto', _node_ip_address=os.environ["ip_head"].split(":")[0], _redis_password=os.environ["redis_password"])
+
+# num_samples, num_epochs, gpus_per_trial
 tune_deepforest_asha(3, 3, 1)
 

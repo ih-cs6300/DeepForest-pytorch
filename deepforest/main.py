@@ -103,6 +103,8 @@ class deepforest(pl.LightningModule):
                                   distributed_backend=self.config["distributed_backend"],
                                   fast_dev_run=self.config["train"]["fast_dev_run"],
                                   callbacks=callbacks,
+                                  progress_bar_refresh_rate=0,
+                                  weights_summary=None,
                                   **kwargs)
 
     def save_model(self, path):
@@ -371,11 +373,12 @@ class deepforest(pl.LightningModule):
            self.log('class_loss', torch.tensor(1.1e6))
            self.log('reg_loss', torch.tensor(1.1e6))
            self.log('avg_loss', torch.tensor(1.1e6))
+           return {'avg_less': torch.tensor(1.1e6)}
         else:
            self.log('class_loss', outputs[0])
            self.log('reg_loss', outputs[1])
            self.log('avg_loss', avg_loss)
-        return {'avg_loss': avg_loss}
+           return {'avg_loss': avg_loss}
 
     def configure_optimizers(self):
         self.optimizer = optim.SGD(self.model.parameters(),
