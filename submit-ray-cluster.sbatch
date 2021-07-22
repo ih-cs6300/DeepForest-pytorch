@@ -1,23 +1,26 @@
 #!/bin/bash
 
 #SBATCH -C gpu
-#SBATCH --time=01:00:00
+#SBATCH --time=32:00:00
 
 ### This script works for any number of nodes, Ray will find and manage all resources
-#SBATCH --nodes=2
+#SBATCH --nodes=1 #1
 
 ### Give all resources to a single Ray task, ray can manage the resources internally
-#SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-task=1
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks-per-node=3 #1
+### COMMENT OUT SBATCH --gpus-per-task=1 #1
+#SBATCH --gpus=2
+#SBATCH --cpus-per-task=2 #1
 #SBATCH --partition=gpu
-#SBATCH --mem=32gb
+#SBATCH --mem=128gb
 
 # Load modules or your own conda environment here
 #module load pytorch/v1.4.0-gpu 
 module load conda && conda activate deepforest1
 sleep 10
 
+# set the max number of pending trials
+export TUNE_MAX_PENDING_TRIALS_PG=10
 
 ################# DON NOT CHANGE THINGS HERE UNLESS YOU KNOW WHAT YOU ARE DOING ###############
 # This script is a modification to the implementation suggest by gregSchwartz18 here:
@@ -50,5 +53,5 @@ done
 ##############################################################################################
 
 #### call your code below
-python3 tune1.py
+python3 -W ignore tune1.py
 exit

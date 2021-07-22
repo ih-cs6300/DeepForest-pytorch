@@ -20,7 +20,7 @@ from ray.tune.schedulers import ASHAScheduler, PopulationBasedTraining
 from ray.tune.integration.pytorch_lightning import TuneReportCallback, TuneReportCheckpointCallback
 
 
-def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
+def train_deepforest_tune(config, num_epochs=10, num_gpus=0, checkpoint_dir=None):
    os.environ["SLURM_JOB_NAME"] = "bash"
    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -58,6 +58,9 @@ def train_deepforest_tune(config, num_epochs=10, num_gpus=0):
    n_train_batches = len(training_data) / batch_size
    m.config["train"]["n_train_batches"] = n_train_batches
 
+   # number of workers for data loader
+   m.config["workers"]=1
+
    # create a pytorch lighting trainer
    #checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
    raytune_callback = TuneReportCallback(metrics={"val_class_loss": "class_loss", "val_reg_loss": 'reg_loss', "val_avg_loss":'avg_loss'}, on="validation_end")
@@ -93,7 +96,7 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
             num_epochs=num_epochs,
             num_gpus=gpus_per_trial),
         resources_per_trial={
-            "cpu": 1,
+            "cpu": 2,
             "gpu": gpus_per_trial
         },
         metric="val_avg_loss",
@@ -102,7 +105,6 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
         num_samples=num_samples,
         scheduler=scheduler,
         progress_reporter=reporter,
-        local_dir='/blue/daisyw/iharmon1/data',
         name="tune_deepforest_asha")
 
     print("Best hyperparameters found were: ", analysis.best_config)
@@ -113,5 +115,5 @@ def tune_deepforest_asha(num_samples=10, num_epochs=10, gpus_per_trial=0):
 ray.init(address='auto', _node_ip_address=os.environ["ip_head"].split(":")[0], _redis_password=os.environ["redis_password"])
 
 # num_samples, num_epochs, gpus_per_trial
-tune_deepforest_asha(3, 3, 1)
+tune_deepforest_asha(200, 3, 1)
 

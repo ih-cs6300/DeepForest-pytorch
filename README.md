@@ -24,5 +24,11 @@
 
 * job parameters in submit-ray-cluster.sbatch
 
-* to run: `sbatch submit-ray-cluster.sbatch` 
+* to run interactively: 
+1) srun -p gpu --gpus=geforce:2 --mem=64gb --time=01:00:00  --pty -u bash -i
+2) ml git conda
+3) make sure ray.init() includes number of cpus and gpus in tune1.py
+4) conda activate deepforest1
+5) python3 tune1.py 
 
+* to run as a batch job: `sbatch submit-ray-cluster.sbatch` 
