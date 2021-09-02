@@ -19,16 +19,16 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
-pi_params = [0.9, 0]
+pi_params = [0.95, 0.05]  #0.9, 0
 batch_size = 1
-C = 6
+C = 9  # 6
 
 # directory with image and annotation data
 data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
 
-train_csv = os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(data_dir, "train.csv")  #os.path.join(data_dir, "train.csv")
+val_csv = os.path.join(data_dir, "val.csv")      #os.path.join(data_dir, "val.csv")
+test_csv = os.path.join(data_dir, "TEAK-test.csv")    #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -37,11 +37,13 @@ m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = data_dir
-m.config["score_thresh"] = 0.4
+m.config["score_thresh"] = 0.46  # default 0.4
 m.config["train"]['epochs'] = 3
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = data_dir
-m.config["nms_thresh"] = 0.05
+m.config["nms_thresh"] = 0.57  # default 0.05
+m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
+m.config["train"]["beg_incr_pi"] = 200000000
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
@@ -75,7 +77,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["big_ds", "bbox_2big_rle"])
+comet.experiment.add_tags(["big_ds", "niwo", "comp_rule"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)

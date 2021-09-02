@@ -309,7 +309,7 @@ class deepforest(pl.LightningModule):
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         #self.batch_cnt += 1
-        if self.global_step > 1500:
+        if self.global_step > self.config['train']["beg_incr_pi"]:
            self.batch_cnt += 1
 
         #calculate pi
