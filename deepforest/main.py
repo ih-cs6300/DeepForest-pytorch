@@ -308,7 +308,7 @@ class deepforest(pl.LightningModule):
 
         path, images, targets = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
-        if self.global_step > 1000:
+        if self.global_step > self.config['train']["beg_incr_pi"]:
            self.batch_cnt += 1
 
         #calculate pi
@@ -331,11 +331,18 @@ class deepforest(pl.LightningModule):
         eng_fea = []
         for img, img_dict in zip(images, preds):
             # generate special features
-            eng_fea = self.has_competition(images, preds)
+            #eng_fea = self.has_competition(images, preds)
+            # ignore competition feature for now
+            eng_fea = list(range(preds[0]['boxes'].shape[0]))
 
         q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
-        huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
+        if (preds[0]['boxes'].shape[0] == 0):
+           huLoss = torch.tensor([0.], requires_grad=True).to(self.device)
+        else:
+           huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
+
+        #import pdb; pdb.set_trace()
 
         #pi = 0
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
@@ -343,11 +350,13 @@ class deepforest(pl.LightningModule):
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
         self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        self.log('hu', huLoss, prog_bar=True, on_step=True)
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
+            comet.experiment.log_metric("huLoss", huLoss)
         return losses
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step1(self, batch, batch_idx):
         """Train on a loaded dataset
 
         """

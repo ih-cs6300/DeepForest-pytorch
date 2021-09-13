@@ -18,17 +18,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
-rule_lambdas = [1]
-pi_params = [0.85, 0]
+rule_lambdas = [1]  # default 0.1
+pi_params = [0.70, 0.45]
 batch_size = 1
-C = 6
+C = 1 # default 9
 
 # directory with image and annotation data
 data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
 
-train_csv = os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(data_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
+val_csv = os.path.join(data_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
+test_csv = os.path.join(data_dir, "NIWO-test.csv")    #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -37,11 +37,13 @@ m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = data_dir
-m.config["score_thresh"] = 0.4
-m.config["train"]['epochs'] = 2
+m.config["score_thresh"] = 0.46 # default 0.4
+m.config["train"]['epochs'] = 6
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = data_dir
 m.config["nms_thresh"] = 0.05
+m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
+m.config["train"]["beg_incr_pi"] = 240
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
@@ -50,8 +52,9 @@ n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
 
 # create a pytorch lighting trainer used to training
-checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
-m.create_trainer(callbacks=[checkpoint_callback])
+#checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
+#m.create_trainer(callbacks=[checkpoint_callback])
+m.create_trainer()
 
 # load the lastest release model
 #m.use_release()
@@ -78,8 +81,6 @@ comet.experiment.add_tags(["big_ds", "nrm_as_sc"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
-#for key in m.config['train'].keys():
-#   comet.experiment.log_parameter(key, m.config['train'][key]) 
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
 comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
 comet.experiment.log_table('./pred_result/predictions.csv')

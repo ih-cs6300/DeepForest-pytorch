@@ -184,8 +184,13 @@ class FOL_competition(FOL):
         """
 
         # assume these are optimal values for height and width
-        optim_w = 20.
+        optim_w = 19.
         optim_h = 20.
+        sdev = 7;
+
+        #if (X.shape[0] > 0):
+        #   import pdb; pdb.set_trace()
+
 
         # calculate the width and height of each bounding box
         width = (X[:, 2] - X[:, 0]).unsqueeze(1)
@@ -193,9 +198,14 @@ class FOL_competition(FOL):
 
         # calculate the weighted difference between the optimum values and the actual values
         diff_x = w * (optim_w * torch.ones([X.shape[0], 1]).to(self.device) - width)
+
+  
         diff_y = w * (optim_h * torch.ones([X.shape[0], 1]).to(self.device) - height)
         #diff_x = diff_x.to(self.device)
         #diff_y = diff_y.to(self.device)
+
+        diff_x = torch.where(torch.abs(diff_x) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_x)
+        diff_y = torch.where(torch.abs(diff_y) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_y)
 
         # create one matrix with two columns by concatenating diff_x and diff_y
         temp = torch.cat([diff_x, diff_y], dim=1)

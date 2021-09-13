@@ -43,11 +43,11 @@ class LogicNN(object):
         """
         expon_all = torch.tensor(0.0, requires_grad=True)
         for i, rule in enumerate(self.rules):
-            expon = rule.expon(0.5 * self.rule_lambda[i], y_pred, new_rule_fea[i])
+            expon = rule.expon(self.C * self.rule_lambda[i], y_pred, new_rule_fea[i])
             expon_all = expon_all + expon
 
         # truncate to avoid over-/under-flow
-        expon_all = torch.maximum(torch.minimum(expon_all, torch.tensor(0.18)), torch.tensor(-0.22))
+        expon_all = torch.maximum(torch.minimum(expon_all, torch.tensor(1*0.18232)), torch.tensor(1*-0.22314))
         #expon_all = torch.maximum(torch.minimum(expon_all, torch.tensor(60.)), torch.tensor(-60.))
 
         return torch.exp(expon_all)
