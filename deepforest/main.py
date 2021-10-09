@@ -314,6 +314,8 @@ class deepforest(pl.LightningModule):
         #calculate pi
         pi = self.get_pi(curr_iter)
 
+        huLoss = torch.tensor([0.], requires_grad=True).to(self.device)
+
         # make sure model is in training mode
         self.model.train()
         loss_dict = self.model.forward(images, targets)
@@ -334,22 +336,24 @@ class deepforest(pl.LightningModule):
             #eng_fea = self.has_competition(images, preds)
             # ignore competition feature for now
             eng_fea = list(range(preds[0]['boxes'].shape[0]))
+            q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
-        q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
-
-        if (preds[0]['boxes'].shape[0] == 0):
-           huLoss = torch.tensor([0.], requires_grad=True).to(self.device)
-        else:
-           huLoss = F.l1_loss(preds[0]['boxes'], q_y_pred)
+        
+            if (preds[0]['boxes'].shape[0] == 0):
+                huLoss = huLoss + torch.tensor([0.], requires_grad=True).to(self.device)
+            else:
+                huLoss = huLoss + F.l1_loss(preds[0]['boxes'], q_y_pred)
 
         #import pdb; pdb.set_trace()
 
         #pi = 0
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
+
+        num_preds = sum([len(preds[x]['labels']) for x in range(len(images))])
         self.log('pi', pi, prog_bar=True, on_step=True)
-        self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
-        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        self.log('num_preds', num_preds, prog_bar=True, on_step=True)
+        self.log('num_comp', 0, prog_bar=True, on_step=True)
         self.log('hu', huLoss, prog_bar=True, on_step=True)
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)

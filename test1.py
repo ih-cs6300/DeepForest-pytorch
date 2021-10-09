@@ -19,31 +19,34 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]  # default 0.1
-pi_params = [0.70, 0.45]
+pi_params = [0.60, 0.60]
 batch_size = 1
 C = 1 # default 9
 
 # directory with image and annotation data
-data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
+#data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(data_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(data_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(data_dir, "NIWO-test.csv")    #os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(train_dir, "NIWO-train-tiny.csv")  #os.path.join(data_dir, "train.csv")
+val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
+test_csv = os.path.join(eval_dir, "TEAK-test.csv")     #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
 # initialize the model and change the corresponding config file
-m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to(device)
+m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes, batch_size=batch_size).to(device)
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
-m.config["train"]["root_dir"] = data_dir
+m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46 # default 0.4
-m.config["train"]['epochs'] = 6
+m.config["train"]['epochs'] = 10
 m.config["validation"]["csv_file"] = val_csv
-m.config["validation"]["root_dir"] = data_dir
+m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 240
+m.config["train"]["beg_incr_pi"] = 300 # 385 #480
+m.config["batch_size"] = batch_size
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
@@ -70,7 +73,8 @@ try:
    os.mkdir(save_dir)
 except OSError as error:
    pass
-results = m.evaluate(test_csv, data_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+#results = m.evaluate(test_csv, data_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 

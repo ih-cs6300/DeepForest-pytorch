@@ -184,8 +184,8 @@ class FOL_competition(FOL):
         """
 
         # assume these are optimal values for height and width
-        optim_w = 19.
-        optim_h = 20.
+        optim_w = 47.
+        optim_h = 48.
         sdev = 7;
 
         #if (X.shape[0] > 0):
