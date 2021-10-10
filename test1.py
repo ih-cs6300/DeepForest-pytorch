@@ -24,11 +24,12 @@ batch_size = 1
 C = 9  # 6
 
 # directory with image and annotation data
-data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(data_dir, "train.csv")  #os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(data_dir, "val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(data_dir, "TEAK-test.csv")    #os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(train_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
+val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
+test_csv = os.path.join(eval_dir, "NIWO-test.csv")    #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -36,14 +37,14 @@ test_csv = os.path.join(data_dir, "TEAK-test.csv")    #os.path.join(data_dir, "t
 m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to(device)
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
-m.config["train"]["root_dir"] = data_dir
+m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46  # default 0.4
-m.config["train"]['epochs'] = 3
+m.config["train"]['epochs'] = 6
 m.config["validation"]["csv_file"] = val_csv
-m.config["validation"]["root_dir"] = data_dir
+m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 200000000
+m.config["train"]["beg_incr_pi"] = 231
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
@@ -57,7 +58,7 @@ checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints
 m.create_trainer()
 
 # load the lastest release model
-#m.use_release()
+m.use_release()
 
 start_time = time.time()
 m.trainer.fit(m)
@@ -70,7 +71,7 @@ try:
    os.mkdir(save_dir)
 except OSError as error:
    pass
-results = m.evaluate(test_csv, data_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
@@ -82,7 +83,11 @@ comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
+
+repo = Repository('.git')
+last_commit = repo[repo.head.target]
 comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
+comet.experiment.log_parameter('last_commit', last_commit.id)
 comet.experiment.log_table('./pred_result/predictions.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
