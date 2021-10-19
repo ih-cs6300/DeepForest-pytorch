@@ -19,7 +19,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]  # default 0.1
-pi_params = [0.60, 0.60]
+pi_params = [0.6, 0.40]
 batch_size = 1
 C = 1 # default 9
 
@@ -28,9 +28,9 @@ C = 1 # default 9
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "NIWO-train-tiny.csv")  #os.path.join(data_dir, "train.csv")
+train_csv = os.path.join(train_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
 val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(eval_dir, "TEAK-test.csv")     #os.path.join(data_dir, "test_small.csv")
+test_csv = os.path.join(eval_dir, "NIWO-test.csv")     #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -40,12 +40,12 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46 # default 0.4
-m.config["train"]['epochs'] = 10
+m.config["train"]['epochs'] = 6
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 300 # 385 #480
+m.config["train"]["beg_incr_pi"] = 78e6 # 385 #480
 m.config["batch_size"] = batch_size
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
@@ -60,7 +60,7 @@ m.config["train"]["n_train_batches"] = n_train_batches
 m.create_trainer()
 
 # load the lastest release model
-#m.use_release()
+m.use_release()
 
 start_time = time.time()
 m.trainer.fit(m)
@@ -86,7 +86,10 @@ comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
+repo = Repository('.git')
+last = repo[repo.head.target]
 comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
+comet.experiment.log_parameter('last_commit', last.id)
 comet.experiment.log_table('./pred_result/predictions.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
