@@ -45,7 +45,7 @@ m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 78e6 # 385 #480
+m.config["train"]["beg_incr_pi"] = 78 # 385 #480
 m.config["batch_size"] = batch_size
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))

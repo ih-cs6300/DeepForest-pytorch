@@ -205,7 +205,7 @@ class FOL_competition(FOL):
 
         #diff_x = torch.where(torch.abs(diff_x) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_x)
         #diff_y = torch.where(torch.abs(diff_y) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_y)
-        diff_x = torch.where((diff_x => (optim_w - 40.54)) & (diff_x <= (optim_w - 2.6)), torch.tensor([0.]).to(self.device), diff_x)
+        diff_x = torch.where((diff_x >= (optim_w - 40.54)) & (diff_x <= (optim_w - 2.6)), torch.tensor([0.]).to(self.device), diff_x)
         diff_y = torch.where((diff_y >= (optim_h - 41.)) & (diff_y <= (optim_h - 2.99)), torch.tensor([0.]).to(self.device), diff_y)
 
         # create one matrix with two columns by concatenating diff_x and diff_y
