@@ -92,6 +92,7 @@ def evaluate(predictions,
     results = []
     box_recalls = []
     box_precisions = []
+    match_list = []   # not deepforest code
     for image_path, group in predictions.groupby("image_path"):
         
         #clean indices
@@ -112,14 +113,23 @@ def evaluate(predictions,
         box_precisions.append(precision)
         results.append(result)
 
+        # not original deepforest code
+        match_df = result[result.match]
+        temp_df = match_df.merge(group.loc[:, ['xmin', 'ymin', 'xmax', 'ymax', 'score', 'prediction_id']], left_on="prediction_id", right_on='prediction_id')
+        temp_df = temp_df.rename(columns={'xmin':'pxmin', 'ymin':'pymin', 'xmax':'pxmax', 'ymax':'pymax'})
+        temp_df = temp_df.merge(plot_ground_truth.loc[:, ["xmin",  "ymin", "xmax", "ymax", "truth_id"]], left_on="truth_id", right_on="truth_id")
+        match_list.append(temp_df)
+
     if len(results) == 0:
         print("No predictions made, setting precision and recall to 0")
         box_recall = 0
         box_precision = 0
         class_recall = pd.DataFrame()
         results = pd.DataFrame()
+        match_df = pd.DataFrame()   # not deepforest code
     else:
         results = pd.concat(results)
+        match_df = pd.concat(match_list)  # not deepforest code
         box_precision = np.mean(box_precisions)
         box_recall = np.mean(box_recalls)
     
@@ -140,5 +150,6 @@ def evaluate(predictions,
         class_recall = pd.DataFrame({"label":class_recall_dict.keys(),"recall":pd.Series(class_recall_dict), "precision":pd.Series(class_precision_dict), "size":pd.Series(class_size)}).reset_index(drop=True)
 
 
-    predictions.to_csv(join(savedir, "predictions.csv"), index=False, header=True)            
+    predictions.to_csv(join(savedir, "predictions.csv"), index=False, header=True)  # not deepforest code
+    match_df.to_csv(join(savedir, "matches.csv"), index=False, header=True)   # not deepforest code
     return {"results": results, "box_precision": box_precision, "box_recall": box_recall, "class_recall":class_recall}
