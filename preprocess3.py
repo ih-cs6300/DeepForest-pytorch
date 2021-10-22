@@ -1,8 +1,11 @@
 # October 21, 2021
 # This file converts the deepforest benchmark dataset annotations from .xml to .csv files. 
+# Then the names of annotation files that don't have matching RGB and CHM files are removed from the list.
+# The RGB and CHM files are combined into 1 file.
 # Then the .tif files over 500 x 500 pixles are split into smaller files.
 # Benchmark dataset repo: https://github.com/weecology/NeonTreeEvaluation.
 # Large tifs stored on zenodo: https://zenodo.org/record/4746605.
+# The files tifs and files with crops in the name are located on zenodo.
 
 import re
 from os.path import join
@@ -12,13 +15,20 @@ from glob import glob
 from os.path import basename
 from deepforest import utilities
 from shutil import copyfile
+from shutil import move
 from deepforest.preprocess import split_raster
 from PIL import Image
 
+import rasterio
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+import cv2
+
 ann_dir = "/home/iharmon1/data/NeonTreeEvaluation/annotations"
-eval_dir = "./evaluation3"
-train_dir = "./training3"
+eval_dir = "./evaluation4"
+train_dir = "./training4"
 rgb_dir = "/home/iharmon1/data/NeonTreeEvaluation/evaluation/RGB"
+chm_dir = "/home/iharmon1/data/NeonTreeEvaluation/evaluation/CHM"
 
 ####################################################################################################################################################################
 # functions
@@ -36,9 +46,11 @@ def sep_train_eval_ann(files, regex):
 
 
 
-def sep_train_eval_img(img_files, training_list, eval_list):
+def sep_train_eval_img(img_files, chm_files, training_list, eval_list):
    train_img_list = []
    eval_img_list = []
+   train_chm_list = []
+   eval_chm_list = []
 
    train_ann_rem = []
    eval_ann_rem = []
@@ -47,23 +59,27 @@ def sep_train_eval_img(img_files, training_list, eval_list):
    for f in training_list:
       # see if an annotation file has a corresponding image file
       img_filename = f + ".tif"
-      if img_filename in image_files:
+      chm_filename = f + "_CHM.tif"
+      if (img_filename in image_files) and (chm_filename in chm_files):
          # add image file to training_img_list
          train_img_list.append(img_filename)
+         train_chm_list.append(chm_filename)
       else:
-         # remove from annotations if no corresponding image
+         # remove from annotations if no corresponding image and chm
          train_ann_rem.append(f)
 
    # loop over evaluation annotations
    for f in eval_list:
       img_filename = f + ".tif"
-      if img_filename in image_files:
+      chm_filename = f + "_CHM.tif"
+      if (img_filename in image_files) and (chm_filename in chm_files):
          eval_img_list.append(img_filename)
+         eval_chm_list.append(chm_filename)
       else:
          # remove .csv from list since it has no corresponding image file
          eval_ann_rem.append(f)
 
-   return train_img_list, eval_img_list, train_ann_rem, eval_ann_rem
+   return train_img_list, eval_img_list, train_chm_list, eval_chm_list, train_ann_rem, eval_ann_rem
 
 
 
@@ -126,6 +142,66 @@ def split_large_images(working_dir, image_files):
           # don't remove .csv file because the original is overwritten by split_raster()
           #remove(join(working_dir, ann_name))
        img.close()
+
+def write_geotiff(working_dir, rasterio_obj, new_fname, data):
+    with rasterio.open(
+            join(working_dir, new_fname),
+            'w',
+            driver=rasterio_obj.driver,
+            height=data.shape[1],
+            width=data.shape[2],
+            count=data.shape[0],
+            dtype=data.dtype,
+            crs=rasterio_obj.crs,
+            transform=rasterio_obj.transform,
+    ) as dst:
+        dst.write( data)
+        dst.close()
+
+    
+
+def combine_rgb_chm(working_dir, img_list, chm_list):
+    img_list.sort()
+    chm_list.sort()
+
+    assert(len(img_list) == len(chm_list)), "RGB-CHM mismatch list length!"
+
+    scaler = MinMaxScaler(feature_range=(0, 255))
+
+    for idx, fname in enumerate(img_list):
+        rgb = rasterio.open(join(working_dir, fname), 'r')
+        chm = rasterio.open(join(working_dir, chm_list[idx]))
+
+        # read in all channels
+        arr1 = rgb.read()
+
+        # chm only has one channel
+        arr2 = chm.read(1)
+
+        # resize chm to same size as rgb
+        arr2 = cv2.resize(arr2, arr1.shape[1:][::-1], interpolation=cv2.INTER_LINEAR)
+
+        # -9999 represents no data, set to 0 before scaling
+        arr2 = np.where(arr2 < 0, 0, arr2)
+        arr2 = scaler.fit_transform(arr2)
+
+        # concatenate rgb and chm along channel axis; this is an np array
+        rgb_chm = np.concatenate([arr1, np.expand_dims(arr2, 0)], axis=0)
+        
+        # save new geotiff to file; overwrites the original file
+        write_geotiff(working_dir, rgb, fname + "1", rgb_chm)        
+
+        # close rgb and chm file
+        rgb.close()
+        chm.close()
+
+        # remove chm and original rgb 
+        remove(join(working_dir, fname))
+        remove(join(working_dir, chm_list[idx]))
+
+        # copy new rgb to old rgb name
+        move(join(working_dir, fname + "1"), join(working_dir, fname))                
+        
    
 #####################################################################################################################################################################
 # driver code
@@ -168,10 +244,16 @@ eval_img_list = []
 # get list of .tif files
 image_files = glob(join(rgb_dir, "*.tif"))
 
-# remove directory from file names
+# remove directory from image file names
 image_files = [basename(x) for x in image_files]
 
-# create a training_list with names with no extension; can be used to find images
+# create a list of chm files
+chm_files = glob(join(chm_dir, "*.tif"))
+
+# remove dir from chm_files
+chm_files = [basename(x) for x in chm_files]
+
+# create a training_list with names with no extension; can be used to find images and chms
 training_list = [x.split(".")[0] for x in training_ann_list]
 
 # create a eval_list with names with no extension; can be used to find images
@@ -179,9 +261,9 @@ eval_list = [x.split(".")[0] for x in evaluation_ann_list]
 
 # create a list of training images and a list of evaluation images
 print("Separating training and evaluation images...")
-train_img_list, eval_img_list, train_ann_rem, eval_ann_rem  = sep_train_eval_img(image_files, training_list, eval_list)
+train_img_list, eval_img_list, train_chm_list, eval_chm_list, train_ann_rem, eval_ann_rem  = sep_train_eval_img(image_files, chm_files, training_list, eval_list)
 
-# remove annotations without corresponding images from training and eval annotation list
+# remove annotations without corresponding images and chms from training and eval annotation list
 print("Cleaning training and eval annotation lists...")
 clean_annotations(train_dir, eval_dir, train_ann_rem, eval_ann_rem)
 
@@ -189,8 +271,22 @@ clean_annotations(train_dir, eval_dir, train_ann_rem, eval_ann_rem)
 print("Copying training images...")
 copy_files(rgb_dir, train_dir, train_img_list)
 
-print("Copying annotation images...")
+# copy chms to training directory
+print("Copying CHMs to training directory...")
+copy_files(chm_dir, train_dir, train_chm_list)
+
+print("Copying evaluation images...")
 copy_files(rgb_dir, eval_dir, eval_img_list)
+
+print("Copying evaluation CHMs...")
+copy_files(chm_dir, eval_dir, eval_chm_list)
+
+# combine RGBs with their CHMs are write back to the same file; delete CHM when done
+print("Combining training RGBs with CHMs...")
+combine_rgb_chm(train_dir, train_img_list, train_chm_list)
+
+print("Combining evaluation RGBs with CHMs...")
+combine_rgb_chm(eval_dir, eval_img_list, eval_chm_list)
 
 #import pdb; pdb.set_trace()
 # split images larger than 500 pixels in either dimension
@@ -203,11 +299,11 @@ filtered_train_basename_list = [basename(x).split(".")[0] for x in filtered_trai
 filtered_eval_basename_list =  [basename(x).split(".")[0] for x in filtered_eval_basename_list]
 
 # split large training images
-print("\n")
-print("Checking training images sizes...")
-split_large_images(train_dir, filtered_train_basename_list)
+#print("\n")
+#print("Checking training images sizes...")
+#split_large_images(train_dir, filtered_train_basename_list)
 
 # split large evaluation images
-print("\n\n")
-print("Checking evaluation image sizes...")
-split_large_images(eval_dir, filtered_eval_basename_list)
+#print("\n\n")
+#print("Checking evaluation image sizes...")
+#split_large_images(eval_dir, filtered_eval_basename_list)
