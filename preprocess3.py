@@ -122,12 +122,13 @@ def split_large_images(working_dir, image_files):
        img_name = f + ".tif"
        ann_name = f + ".csv"
        print("Image: {}".format(img_name))
-       img = Image.open(join(working_dir, img_name))
+       # img = Image.open(join(working_dir, img_name))
+       img = cv2.imread(join(working_dir, img_name), cv2.IMREAD_UNCHANGED)
 
        # split files larger than 500 pixels in either dimension
        # the image file is saved as a PNG
        # the annotations file is saved as image_file_name.csv
-       if (img.size[0] > 500 or img.size[1] > 500):
+       if (img.shape[0] > 500 or img.shape[1] > 500):
 
           # if a file is sent to split_raster but it has no annotations in train_df it causes an error
           # check if in train_df before sending to split_raster
@@ -141,7 +142,6 @@ def split_large_images(working_dir, image_files):
 
           # don't remove .csv file because the original is overwritten by split_raster()
           #remove(join(working_dir, ann_name))
-       img.close()
 
 def write_geotiff(working_dir, rasterio_obj, new_fname, data):
     with rasterio.open(
@@ -184,6 +184,7 @@ def combine_rgb_chm(working_dir, img_list, chm_list):
         # -9999 represents no data, set to 0 before scaling
         arr2 = np.where(arr2 < 0, 0, arr2)
         arr2 = scaler.fit_transform(arr2)
+        arr2 = np.clip(arr2, 0., 255.)    # make sure all values between 0 and 255
 
         # concatenate rgb and chm along channel axis; this is an np array
         rgb_chm = np.concatenate([arr1, np.expand_dims(arr2, 0)], axis=0)
@@ -299,11 +300,11 @@ filtered_train_basename_list = [basename(x).split(".")[0] for x in filtered_trai
 filtered_eval_basename_list =  [basename(x).split(".")[0] for x in filtered_eval_basename_list]
 
 # split large training images
-#print("\n")
-#print("Checking training images sizes...")
-#split_large_images(train_dir, filtered_train_basename_list)
+print("\n")
+print("Checking training images sizes...")
+split_large_images(train_dir, filtered_train_basename_list)
 
 # split large evaluation images
-#print("\n\n")
-#print("Checking evaluation image sizes...")
-#split_large_images(eval_dir, filtered_eval_basename_list)
+print("\n\n")
+print("Checking evaluation image sizes...")
+split_large_images(eval_dir, filtered_eval_basename_list)

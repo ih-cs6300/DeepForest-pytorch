@@ -3,11 +3,25 @@
 import pandas as pd
 import numpy as np
 from os.path import join
+from os.path import isdir
 from glob import glob
 from sklearn.model_selection import train_test_split
+import argparse
 
-train_dir = "./training3"
-eval_dir = "./evaluation3"
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--tr', type=str, required=True, help='training directory')
+parser.add_argument('--ev', type=str, required=True, help='evaluation directory')
+args = parser.parse_args()
+
+# evaluation3 and training3 have no chm data included
+# evaluation4 and training4 have chm data included
+
+train_dir =  args.tr # "./training4"
+eval_dir =   args.ev # "./evaluation4"
+
+assert (isdir("./" + train_dir)), "Directory {} doesn't exist".format(train_dir)
+assert (isdir("./" + eval_dir)),  "Directory {} doesn't exist".format(eval_dir)
 
 train_csv = "TEAK-train.csv"
 val_csv = "TEAK-val.csv"

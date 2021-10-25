@@ -8,7 +8,8 @@ import torch
 def load_backbone():
     """A torch vision retinanet model"""
     #backbone = torchvision.models.detection.retinanet_resnet50_fpn(pretrained=True)
-    backbone = torchvision.models.detection.retinanet_resnet50_fpn(pretrained=True)
+    #backbone = torchvision.models.detection.retinanet_resnet50_fpn(pretrained=True)
+    backbone = torchvision.models.detection.retinanet_resnet50_fpn(pretrained=False)
 
     # load the model onto the computation device
     return backbone
@@ -45,7 +46,8 @@ def create_model(num_classes, nms_thresh, score_thresh):
     Returns:
         model: a pytorch nn module
     """
-    backbone = load_backbone()
+    resnet = load_backbone()
+    backbone = resnet.backbone
 
     #anchor_sizes = tuple((x, int(x * 2 ** (1.0 / 3)), int(x * 2 ** (2.0 / 3))) for x in [32, 64, 128, 256, 512])
 
@@ -55,8 +57,14 @@ def create_model(num_classes, nms_thresh, score_thresh):
     #anchor_generator = create_anchor_generator(anchor_sizes, aspect_ratios)
 
     
-    model = RetinaNet(backbone.backbone, num_classes=num_classes)
+    #model = RetinaNet(backbone.backbone, num_classes=num_classes)
     #model = RetinaNet(backbone.backbone, num_classes=num_classes, anchor_generator=anchor_generator)
+
+    # allows retinanet to use 4 channel images
+    model = RetinaNet(backbone=backbone, num_classes=num_classes, image_mean=torch.tensor([0.5, 0.5, 0.5, 0.5]), image_std=torch.tensor([0.5, 0.5, 0.5, 0.5]))
+    # alter backbone to accept an image with 4 channels rather than 3
+    model.backbone.body.conv1 = torch.nn.Conv2d(4, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+  
 
     #in_channels = model.head.classification_head.cls_logits.in_channels
     #out_channels = model.head.classification_head.cls_logits.out_channels

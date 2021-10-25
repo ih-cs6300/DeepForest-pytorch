@@ -260,8 +260,8 @@ def check_image(image):
            image: numpy array
         Returns: None, throws error on assert
     """
-    if not image.shape[2] == 3:
-        raise ValueError("image is expected have three channels, channel last format, found image with shape {}".format(image.shape))
+    if not image.shape[2] == 4:
+        raise ValueError("image is expected have four channels, channel last format, found image with shape {}".format(image.shape))
     
 def project_boxes(df, root_dir, transform=True):
     """

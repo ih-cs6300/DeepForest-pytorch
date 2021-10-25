@@ -12,6 +12,8 @@ import slidingwindow
 from PIL import Image
 import torch
 
+import rasterio
+import cv2
 
 def preprocess_image(image):
     """Preprocess a single RGB numpy array as a prediction from channels last, to channels first"""
@@ -131,11 +133,12 @@ def save_crop(base_dir, image_name, index, crop):
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
 
-    im = Image.fromarray(crop)
+    #im = Image.fromarray(crop)
     image_basename = os.path.splitext(image_name)[0]
     filename = "{}/{}_{}.png".format(base_dir, image_basename, index)
-    im.save(filename)
-
+    #im.save(filename)
+    
+    cv2.imwrite(filename, crop)
     return filename
 
 
@@ -163,17 +166,22 @@ def split_raster(path_to_raster,
         A pandas dataframe with annotations file for training.
     """
     # Load raster as image
-    raster = Image.open(path_to_raster)
-    numpy_image = np.array(raster)
+    #raster = Image.open(path_to_raster)
+    #numpy_image = np.array(raster)
 
+    raster = rasterio.open(path_to_raster)
+    numpy_image = raster.read()
+    numpy_image = np.moveaxis(numpy_image, 0, 2)
+
+    # this version will use 4 channel for chm
     # Check that its 3 band
-    bands = numpy_image.shape[2]
-    if not bands == 3:
-        raise IOError("Input file {} has {} bands. DeepForest only accepts 3 band RGB "
-                      "rasters in the order (height, width, channels). "
-                      "If the image was cropped and saved as a .jpg, "
-                      "please ensure that no alpha channel was used.".format(
-                          path_to_raster, bands))
+    #bands = numpy_image.shape[2]
+    #if not bands == 3:
+    #    raise IOError("Input file {} has {} bands. DeepForest only accepts 3 band RGB "
+    #                  "rasters in the order (height, width, channels). "
+    #                  "If the image was cropped and saved as a .jpg, "
+    #                  "please ensure that no alpha channel was used.".format(
+    #                      path_to_raster, bands))
 
     # Check that patch size is greater than image size
     height = numpy_image.shape[0]

@@ -14,6 +14,7 @@ https://colab.research.google.com/github/benihime91/pytorch_retinanet/blob/maste
 """
 import os
 import pandas as pd
+import cv2
 from skimage import io
 from torch.utils.data import Dataset
 from deepforest import transforms as T
@@ -51,7 +52,9 @@ class TreeDataset(Dataset):
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
-        image = io.imread(img_name)
+        #image = io.imread(img_name)
+        image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
+ 
         image = image / 255
         
         try:
