@@ -8,7 +8,6 @@ from glob import glob
 from sklearn.model_selection import train_test_split
 import argparse
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--tr', type=str, required=True, help='training directory')
 parser.add_argument('--ev', type=str, required=True, help='evaluation directory')
@@ -23,23 +22,48 @@ eval_dir =   args.ev # "./evaluation4"
 assert (isdir("./" + train_dir)), "Directory {} doesn't exist".format(train_dir)
 assert (isdir("./" + eval_dir)),  "Directory {} doesn't exist".format(eval_dir)
 
-train_csv = "TEAK-train.csv"
-val_csv = "TEAK-val.csv"
-test_csv = "TEAK-test.csv"
+train_csv = "all-train.csv"
+val_csv = "all-val.csv"
+test_csv = "all-test.csv"
 
 #import pdb; pdb.set_trace()
-# read in all TEAK csv files
+# read in all *.csv files
 train_df_list = []
-train_list = glob(join(train_dir, "2018_TEAK_*.csv"))
+train_list = glob(join(train_dir, "*-train.csv"))
+
+# remove all-train.csv if it's in list
+to_remove = join(train_dir, "all-train.csv")
+if (to_remove in train_list):
+   train_list.remove(to_remove)
+
 for f in train_list:
    train_df_list.append(pd.read_csv(f))
 
 
-train_df_all  = pd.concat(train_df_list)
+train_df  = pd.concat(train_df_list)
 
-train_df, val_df = train_test_split(train_df_all, test_size=0.1667, random_state=42)
+val_df_list = []
+val_list = glob(join(train_dir, "*-val.csv"))
 
-eval_list = glob(join(eval_dir, "TEAK_*.csv"))
+# remove all-val.csv if it's in list
+to_remove = join(train_dir, "all-val.csv")
+if (to_remove in val_list):
+   val_list.remove(to_remove)
+
+for f in val_list:
+   val_df_list.append(pd.read_csv(f))
+
+
+val_df  = pd.concat(val_df_list)
+
+
+
+eval_list = glob(join(eval_dir, "*-test.csv"))
+
+# remove test-eval.csv if it's in list
+to_remove = join(eval_dir, "all-test.csv")
+if (to_remove in eval_list):
+   eval_list.remove(to_remove)      
 
 eval_df_list = []
 for f in eval_list:
@@ -50,7 +74,7 @@ test_df  = pd.concat(eval_df_list)
 print("\n\n\n")
 print("Train dataset: {} instances".format(train_df.shape[0]))
 print("Val dataset:   {} instances".format(val_df.shape[0]))
-print("Test dataset:  {} instances".format(test_df.shape[0])) 
+print("Test dataset:  {} instances".format(test_df.shape[0]))
 
 print("\n\n\n")
 print("Saving files")

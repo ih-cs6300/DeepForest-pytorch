@@ -183,7 +183,7 @@ def combine_rgb_chm(working_dir, img_list, chm_list):
 
         # -9999 represents no data, set to 0 before scaling
         arr2 = np.where(arr2 < 0, 0, arr2)
-        arr2 = scaler.fit_transform(arr2)
+        #arr2 = scaler.fit_transform(arr2)
         arr2 = np.clip(arr2, 0., 255.)    # make sure all values between 0 and 255
 
         # concatenate rgb and chm along channel axis; this is an np array
