@@ -331,11 +331,17 @@ class deepforest(pl.LightningModule):
 
         # get special features
         eng_fea = []
+        num_comp = 0
         for img, img_dict in zip(images, preds):
+
             # generate special features
-            #eng_fea = self.has_competition(images, preds)
-            # ignore competition feature for now
-            eng_fea = list(range(preds[0]['boxes'].shape[0]))
+            eng_fea = self.has_competition(images, preds)
+
+            # to ignore competition feature uncomment
+            #eng_fea = list(range(preds[0]['boxes'].shape[0]))
+
+            num_comp += len(eng_fea)
+
             q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
         
@@ -344,16 +350,14 @@ class deepforest(pl.LightningModule):
             else:
                 huLoss = huLoss + F.l1_loss(preds[0]['boxes'], q_y_pred)
 
-        #import pdb; pdb.set_trace()
-
-        #pi = 0
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
 
         num_preds = sum([len(preds[x]['labels']) for x in range(len(images))])
+
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', num_preds, prog_bar=True, on_step=True)
-        self.log('num_comp', 0, prog_bar=True, on_step=True)
+        self.log('num_comp', num_comp, prog_bar=True, on_step=True)
         self.log('hu', huLoss, prog_bar=True, on_step=True)
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
@@ -473,7 +477,7 @@ class deepforest(pl.LightningModule):
         preds - list of prediction dictionaries with keys boxes, scores, and labels
         trees_competing - list of competing trees; 0 => not competing, 1 => competing
         """
-
+ 
         trees_competing = [0] * preds[0]['boxes'].shape[0]
 
         # dist = L2 norm of difference
@@ -488,7 +492,7 @@ class deepforest(pl.LightningModule):
             dist = torch.linalg.norm(bb_centroid[pair[0]] - bb_centroid[pair[1]], ord = 2)
 
             #if dist between two BB centroids is less than or equal to the sum of the radii of their crown bounding cirlces, then consider trees to be touching
-            if dist <= bb_rads[pair[0]] + bb_rads[pair[1]]:
+            if dist <= (bb_rads[pair[0]] + bb_rads[pair[1]]):
                 trees_competing[pair[0]] = 1
                 trees_competing[pair[1]] = 1
 

@@ -81,7 +81,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["big_ds", "nrm_as_sc"])
+comet.experiment.add_tags(["big_ds", "reg-wei"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)

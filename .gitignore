@@ -15,5 +15,7 @@ checkpoints/
 .idea/
 evaluation3/
 training3/
+evaluation4/
+training4/
 comet_test.py
 comet.py
