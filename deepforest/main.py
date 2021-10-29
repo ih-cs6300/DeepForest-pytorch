@@ -328,6 +328,7 @@ class deepforest(pl.LightningModule):
         # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
         preds = self.model.forward(images)          #targets must be included in training mode
+        self.get_heights(images, preds)
 
         # get special features
         eng_fea = []
@@ -336,6 +337,9 @@ class deepforest(pl.LightningModule):
             #eng_fea = self.has_competition(images, preds)
             # ignore competition feature for now
             eng_fea = list(range(preds[0]['boxes'].shape[0]))
+            
+            if preds[0]['boxes'].shape[0] > 0:
+               import pdb; pdb.set_trace()
             q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
         
@@ -346,7 +350,6 @@ class deepforest(pl.LightningModule):
 
         #import pdb; pdb.set_trace()
 
-        #pi = 0
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
 
@@ -495,6 +498,24 @@ class deepforest(pl.LightningModule):
         res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
 
         return res
+
+    def get_heights(self, images, preds): 
+        for idx in range(len(preds)):
+            ht_list = []
+            img = images[idx]
+            boxes = torch.round(preds[idx]['boxes'])
+            boxes = boxes.detach().cpu().numpy()
+            boxes = boxes.astype(np.int)   
+
+            for row in range(boxes.shape[0]):
+                ht = torch.max(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
+                ht_list.append(ht * 255.)
+
+            hts = torch.tensor(ht_list, requires_grad=True).reshape(-1, 1).to(self.device)   
+            preds[idx]['hts'] = hts
+
+        return preds
+      
 
     def scaleBB(self, coords, scaleX, scaleY, device):
         # takes in bounding box coordinates as [x1, y1, x2, y2] and returns a scaled bounding box with the same centroid
