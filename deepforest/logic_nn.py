@@ -109,11 +109,11 @@ class LogicNN(object):
 
         scale_factors = self.reg_rule_constraints(p_y_pred, new_data, new_rule_fea)
 
-        q_y_pred = torch.zeros(p_y_pred.shape, requires_grad=True).to(self.device)
+        q_y_pred = torch.zeros(p_y_pred['boxes'].shape, requires_grad=True).to(self.device)
 
 
         # scale each BBox while keeping the same centroid
         for idx, scale_row in enumerate(scale_factors):
-            q_y_pred.data[idx] = self.scaleBB(p_y_pred[idx], scale_row[0], scale_row[1])
+            q_y_pred.data[idx] = self.scaleBB(p_y_pred['boxes'][idx], scale_row[0], scale_row[1])
 
         return q_y_pred

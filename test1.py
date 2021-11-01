@@ -28,9 +28,9 @@ C = 1 # default 9
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
-train_csv = os.path.join(train_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(eval_dir, "NIWO-test.csv")     #os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(train_dir, "NIWO-train.csv") 
+val_csv = os.path.join(train_dir, "NIWO-val.csv")   
+test_csv = os.path.join(eval_dir, "NIWO-test.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -40,12 +40,12 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46 # default 0.4
-m.config["train"]['epochs'] = 15
+m.config["train"]['epochs'] = 22
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 78e6 # 385 #480
+m.config["train"]["beg_incr_pi"] = 1156 # 385 #480
 m.config["batch_size"] = batch_size
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))

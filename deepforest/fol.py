@@ -184,36 +184,38 @@ class FOL_competition(FOL):
         """
 
         # assume these are optimal values for height and width
-        optim_w = 19.
-        optim_h = 20.
+        optim_dim = torch.sqrt((0.3073 * (X['hts'] ** 0.9083))/0.01)
 
-        #if (X.shape[0] > 0):
+        
+
+        #if (X['boxes'].shape[0] > 0):
         #   import pdb; pdb.set_trace()
 
 
         # calculate the width and height of each bounding box
-        width = (X[:, 2] - X[:, 0]).unsqueeze(1)
-        height = (X[:, 3] - X[:, 1]).unsqueeze(1)
+        width = (X['boxes'][:, 2] - X['boxes'][:, 0]).unsqueeze(1)
+        height = (X['boxes'][:, 3] - X['boxes'][:, 1]).unsqueeze(1)
 
         # calculate the weighted difference between the optimum values and the actual values
-        diff_x = w * (optim_w * torch.ones([X.shape[0], 1]).to(self.device) - width)
+        #diff_x = w * (optim_w * torch.ones([X['boxes'].shape[0], 1]).to(self.device) - width)
+        #diff_y = w * (optim_h * torch.ones([X['boxes'].shape[0], 1]).to(self.device) - height)
 
-  
-        diff_y = w * (optim_h * torch.ones([X.shape[0], 1]).to(self.device) - height)
-        #diff_x = diff_x.to(self.device)
-        #diff_y = diff_y.to(self.device)
+        
+        
+        diff_x = w * (optim_dim - width)
+        diff_y = w * (optim_dim - height)
 
         #diff_x = torch.where(torch.abs(diff_x) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_x)
         #diff_y = torch.where(torch.abs(diff_y) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_y)
-        diff_x = torch.where((diff_x >= (optim_w - 40.54)) & (diff_x <= (optim_w - 2.6)), torch.tensor([0.]).to(self.device), diff_x)
-        diff_y = torch.where((diff_y >= (optim_h - 41.)) & (diff_y <= (optim_h - 2.99)), torch.tensor([0.]).to(self.device), diff_y)
+        diff_x = torch.where((diff_x >= (optim_dim - 40.54)) & (diff_x <= (optim_dim - 2.6)), torch.tensor([0.]).to(self.device), diff_x)
+        diff_y = torch.where((diff_y >= (optim_dim - 41.)) & (diff_y <= (optim_dim - 2.99)), torch.tensor([0.]).to(self.device), diff_y)
 
         # create one matrix with two columns by concatenating diff_x and diff_y
         temp = torch.cat([diff_x, diff_y], dim=1)
 
         # create a res matrix containing all zeros
         # first column will be the x differences, second column will be the y differences
-        res = torch.zeros(X.shape[0], 2).to(self.device)
+        res = torch.zeros(X['boxes'].shape[0], 2).to(self.device)
 
         # set rows where trees where growing in close proximity (competition) to diff values
         # all other rows stay zero
