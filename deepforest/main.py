@@ -336,7 +336,7 @@ class deepforest(pl.LightningModule):
         
         if (len(preds[0]['scores']) > 0):
             q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)
-            huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
+            huLoss = F.binary_cross_entropy(preds[0]['scores'].float(), q_y_pred.float())
         else:
             huLoss = torch.tensor(0., requires_grad=True).to(self.device)
 
@@ -421,7 +421,8 @@ class deepforest(pl.LightningModule):
         if not self.device.type == "cpu":
             self.model = self.model.to(self.device)
 
-        predictions = predict.predict_file(model=self.model,
+        predictions = predict.predict_file(self, 
+                                           model=self.model,
                                            csv_file=csv_file,
                                            root_dir=root_dir,
                                            savedir=savedir,

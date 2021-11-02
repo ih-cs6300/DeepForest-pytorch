@@ -69,7 +69,7 @@ class LogicNN(object):
         n_q_y_given_x_fea_pred = q_y_given_x_fea_pred / torch.sum(q_y_given_x_fea_pred, 1).reshape((-1, 1))
 
         temp = torch.argmax(n_q_y_given_x_fea_pred, 1).unsqueeze(1)
-        temp = 1 - temp
+        #temp = 1 - temp
         temp = temp.flatten()
         q_y_pred = temp
         #p_y_pred = torch.argmax(p_y_pred[0]['scores2'], 1).unsqueeze(1)
