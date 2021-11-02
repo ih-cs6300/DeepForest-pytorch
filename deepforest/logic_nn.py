@@ -62,8 +62,8 @@ class LogicNN(object):
         p_y_pred = p_y_pred.to(self.device)
         p_y_pred_0 = 1. - p_y_pred
         p_y_pred_0 = p_y_pred_0.to(self.device)
-        p_y_pred = torch.cat([p_y_pred_0.reshape(-1, 1), p_y_pred.reshape(-1, 1)], dim=1)
-        q_y_given_x_fea_pred = p_y_pred * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea)
+        p_y_pred = torch.cat([p_y_pred_0.reshape(-1, 1), p_y_pred.reshape(-1, 1)], dim=1).to(self.device)
+        q_y_given_x_fea_pred = p_y_pred * self.calc_rule_constraints(p_y_pred, new_data, new_rule_fea).to(self.device)
 
         # normalize
         n_q_y_given_x_fea_pred = q_y_given_x_fea_pred / torch.sum(q_y_given_x_fea_pred, 1).reshape((-1, 1))

@@ -17,7 +17,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 np.random.seed(42)
 n_classes = 1
-rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
+rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]
 pi_params = [0.95, 0.05]  #0.9, 0
 batch_size = 1
@@ -39,7 +39,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46  # default 0.4
-m.config["train"]['epochs'] = 6
+m.config["train"]['epochs'] = 7
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
@@ -78,7 +78,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["big_ds", "niwo", "comp_rule"])
+comet.experiment.add_tags(["niwo"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)

@@ -184,8 +184,9 @@ class FOL_competition(FOL):
         """
 
         # assume these are optimal values for height and width
-        optim_h = 48.
-        optim_w = 47.
+
+        optim_h = 20.
+        optim_w = 19.
 
         # calculate the width and height of each bounding box
         width = (X[:, 2] - X[:, 0]).unsqueeze(1)
@@ -249,9 +250,10 @@ class FOL_bbox_2big(FOL):
         return log_distr
 
     def log_distribution(self, w, X=None, F=None):
+        #import pdb; pdb.set_trace()
         f_1 = F.reshape(-1, 1)
         f_0 = 1. - f_1
-        f = torch.cat([f_0, f_1], 1)
+        f = torch.cat([f_0, f_1], 1).to(self.device)
         f = w * f
         return f
 
@@ -269,9 +271,9 @@ class FOL_bbox_2big(FOL):
         # returns a tensor with values r(x,y)
 
         nx = X.shape[0]            # number of bounding boxes in image
-        distr = torch.ones([nx, self.K], dtype=torch.float, requires_grad=True)
-        distr = torch.tensor(list(map(lambda c, x, f, d: self.distribution_helper_helper(x, f) if c == True else d.tolist(), conds, X, F, distr)))
-        distr = torch.tensor(list(map(lambda d: (-w * ((torch.min(d) * torch.ones(d.shape)) - d)).tolist(), distr)))  # relative value w.r.t the minimum
+        distr = torch.ones([nx, self.K], dtype=torch.float, requires_grad=True).to(self.device)
+        distr = torch.tensor(list(map(lambda c, x, f, d: self.distribution_helper_helper(x, f) if c == True else d.tolist(), conds, X, F, distr))).to(self.device)
+        distr = torch.tensor(list(map(lambda d: (-w * ((torch.min(d) * torch.ones(d.shape)) - d)).tolist(), distr))).to(self.device)  # relative value w.r.t the minimum
         return distr
 
 

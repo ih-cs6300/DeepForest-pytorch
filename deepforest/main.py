@@ -338,16 +338,18 @@ class deepforest(pl.LightningModule):
             q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)
             huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
         else:
-            huLoss = torch.tensor(2., requires_grad=True).to(self.device)
+            huLoss = torch.tensor(0., requires_grad=True).to(self.device)
 
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
 
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
         self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        self.log('hu_loss', huLoss, prog_bar=True, on_step=True)
 
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
+            comet.experiment.log_metric("hu_loss", huLoss)
 
         return losses
 

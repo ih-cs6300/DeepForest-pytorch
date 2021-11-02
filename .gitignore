@@ -15,6 +15,8 @@ pred_result/
 pred_result2/
 evaluation3/
 training3/
+evaluation4/
+training4/
 
 .idea/
 comet_test.py
