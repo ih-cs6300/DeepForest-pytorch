@@ -19,12 +19,11 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]  # default 0.1
-pi_params = [0.6, 0.40]
+pi_params = [0.9, 0.80]
 batch_size = 1
 C = 1 # default 9
 
 # directory with image and annotation data
-#data_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/train_data_folder2"
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
@@ -73,7 +72,7 @@ try:
    os.mkdir(save_dir)
 except OSError as error:
    pass
-#results = m.evaluate(test_csv, data_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
@@ -81,7 +80,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["chm", "niwo"])
+comet.experiment.add_tags(["niwo", "chm"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
@@ -90,7 +89,9 @@ repo = Repository('.git')
 last = repo[repo.head.target]
 comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
 comet.experiment.log_parameter('last_commit', last.id)
-comet.experiment.log_table('./pred_result/predictions.csv')
+comet.experiment.log_table('./pred_result2/predictions.csv')
+comet.experiment.log_table('./pred_result2/matches.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
 comet.experiment.log_code(file_name='logic_nn.py')
+comet.experiment.log_code(file_name='deepforest/predict.py')

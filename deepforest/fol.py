@@ -183,6 +183,15 @@ class FOL_competition(FOL):
         F - engineered features
         """
 
+        lbound = np.array([5, 5, 5, 5, 6, 6, 5, 5, 4, 3, 3, 3, 2, 4, 1, 3, 3, 4, 5, 5, 5, 6, 12, 16, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15])
+        ubound = np.array([20, 20, 20, 20, 21, 21, 23, 29, 31, 52, 55, 45, 48, 42, 48, 49, 51, 47, 64, 47, 48, 52, 48, 48, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63])
+
+        mapped_lbound = torch.from_numpy(lbound[X['hts'].detach().cpu().numpy().astype(np.int)]).to(self.device).type(torch.float)
+        mapped_lbound.requires_grad = True
+
+        mapped_ubound = torch.from_numpy(ubound[X['hts'].detach().cpu().numpy().astype(np.int)]).to(self.device).type(torch.float)
+        mapped_ubound.requires_grad = True
+
         # assume these are optimal values for height and width
         optim_dim = torch.sqrt((0.3073 * (X['hts'] ** 0.9083))/0.01)
 
@@ -207,8 +216,8 @@ class FOL_competition(FOL):
 
         #diff_x = torch.where(torch.abs(diff_x) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_x)
         #diff_y = torch.where(torch.abs(diff_y) <= (3 * sdev), torch.tensor([0.]).to(self.device), diff_y)
-        diff_x = torch.where((diff_x >= (optim_dim - 40.54)) & (diff_x <= (optim_dim - 2.6)), torch.tensor([0.]).to(self.device), diff_x)
-        diff_y = torch.where((diff_y >= (optim_dim - 41.)) & (diff_y <= (optim_dim - 2.99)), torch.tensor([0.]).to(self.device), diff_y)
+        diff_x = torch.where((width >= mapped_lbound) & (width <= mapped_ubound), torch.tensor([0.]).to(self.device), diff_x)
+        diff_y = torch.where((height >= mapped_lbound) & (height <= mapped_ubound), torch.tensor([0.]).to(self.device), diff_y)
 
         # create one matrix with two columns by concatenating diff_x and diff_y
         temp = torch.cat([diff_x, diff_y], dim=1)
