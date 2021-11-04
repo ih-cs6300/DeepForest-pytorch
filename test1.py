@@ -73,7 +73,7 @@ try:
    os.mkdir(save_dir)
 except OSError as error:
    pass
-#results = m.evaluate(test_csv, data_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
@@ -90,7 +90,10 @@ repo = Repository('.git')
 last = repo[repo.head.target]
 comet.experiment.log_parameter('git branch', Repository('.').head.shorthand)
 comet.experiment.log_parameter('last_commit', last.id)
-comet.experiment.log_table('./pred_result/predictions.csv')
+comet.experiment.log_table('./pred_result2/predictions.csv')
+comet.experiment.log_table('./pred_result2/matches.csv')
+comet.experiment.log_code(file_name='./test1.py')
 comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
-comet.experiment.log_code(file_name='logic_nn.py')
+comet.experiment.log_code(file_name='deepforest/logic_nn.py')
+comet.experiment.log_code(file_name='deepforest/predict.py')
