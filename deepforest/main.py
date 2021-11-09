@@ -347,10 +347,11 @@ class deepforest(pl.LightningModule):
                 huLoss = huLoss + torch.tensor([0.], requires_grad=True).to(self.device)
             else:
                 huLoss = huLoss + F.l1_loss(preds[0]['boxes'], q_y_pred)
+                #huLoss = huLoss + F.mse_loss(preds[0]['boxes'], q_y_pred)
 
         #import pdb; pdb.set_trace()
 
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + (pi * huLoss)
 
 
         num_preds = sum([len(preds[x]['labels']) for x in range(len(images))])
@@ -431,7 +432,8 @@ class deepforest(pl.LightningModule):
         if not self.device.type == "cpu":
             self.model = self.model.to(self.device)
 
-        predictions = predict.predict_file(model=self.model,
+        predictions = predict.predict_file(self, 
+                                           model=self.model,
                                            csv_file=csv_file,
                                            root_dir=root_dir,
                                            savedir=savedir,
@@ -508,8 +510,12 @@ class deepforest(pl.LightningModule):
             boxes = boxes.astype(np.int)   
 
             for row in range(boxes.shape[0]):
-                ht = torch.max(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
-                ht_list.append(ht * 255.)
+                if torch.numel(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]]) > 0:
+                   ht = torch.max(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
+                else:
+                   ht = 0.
+                assert (ht >=0) and (ht <= 1.), "Print height {}m out of range".format(ht)
+                ht_list.append(ht * 40.)
 
             hts = torch.tensor(ht_list, requires_grad=True).reshape(-1, 1).to(self.device)   
             preds[idx]['hts'] = hts

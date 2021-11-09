@@ -45,7 +45,7 @@ def predict_image(model, image, return_plot, device, iou_threshold=0.1):
         return df
 
 
-def predict_file(model, csv_file, root_dir, savedir, device, iou_threshold=0.1):
+def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshold=0.1):
     """Create a dataset and predict entire annotation file
 
     Csv file format is .csv file with the columns "image_path", "xmin","ymin","xmax","ymax" for the image name and bounding box position.
@@ -76,6 +76,15 @@ def predict_file(model, csv_file, root_dir, savedir, device, iou_threshold=0.1):
             image = image.to(device)
 
         prediction = model(image)
+        #########################################################################################
+        # my addition; replace student output with teacher output
+        #if (len(prediction[0]['boxes']) > 0):
+        #   #import pdb; pdb.set_trace()
+        #   prediction = m_obj.get_heights(image, prediction)
+        #   eng_fea = m_obj.has_competition(image, prediction)
+        #   q_y_pred = m_obj.logic_nn.regress(prediction[0], image, [eng_fea]).to(m_obj.device)
+        #   prediction[0]['boxes'] = q_y_pred
+        #########################################################################################
         
         prediction = visualize.format_boxes(prediction[0])
         prediction = across_class_nms(prediction, iou_threshold = iou_threshold)

@@ -19,7 +19,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]  # default 0.1
-pi_params = [0.9, 0.80]
+pi_params = [0.60, 0.40]
 batch_size = 1
 C = 1 # default 9
 
@@ -43,7 +43,7 @@ m.config["train"]['epochs'] = 22
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.05
-m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
+m.config["train"]["lr"] = 0.00017997179587414414  # default 0.001
 m.config["train"]["beg_incr_pi"] = 1156 # 385 #480
 m.config["batch_size"] = batch_size
 

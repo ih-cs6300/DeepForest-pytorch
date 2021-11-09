@@ -17,8 +17,13 @@ import cv2
 
 def preprocess_image(image):
     """Preprocess a single RGB numpy array as a prediction from channels last, to channels first"""
+    # image format [batch x channels x ht x wd]
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
-    image = image / 255
+    #image = image / 255
+    div_mat = torch.ones(image.shape, dtype=torch.float32)
+    div_mat[:, :3, :, :] = 255.
+    div_mat[:, 3, :, :] = 40.
+    image = image / div_mat
 
     return image
 

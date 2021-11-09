@@ -15,6 +15,7 @@ https://colab.research.google.com/github/benihime91/pytorch_retinanet/blob/maste
 import os
 import pandas as pd
 import cv2
+import numpy as np
 from skimage import io
 from torch.utils.data import Dataset
 from deepforest import transforms as T
@@ -55,7 +56,12 @@ class TreeDataset(Dataset):
         #image = io.imread(img_name)
         image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
  
-        image = image / 255
+        div_mat = np.ones(image.shape, dtype=np.float32)
+        div_mat[:, :, :3] = 255.
+        div_mat[:, :, 3] = 40.
+        image = image / div_mat
+ 
+        #image = image / 255
         
         try:
             check_image(image)

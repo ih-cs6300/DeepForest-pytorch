@@ -194,6 +194,7 @@ class FOL_competition(FOL):
 
         # assume these are optimal values for height and width
         optim_dim = torch.sqrt((0.3073 * (X['hts'] ** 0.9083))/0.01)
+        optim_dim = optim_dim.to(self.device)
 
         
 
@@ -202,8 +203,8 @@ class FOL_competition(FOL):
 
 
         # calculate the width and height of each bounding box
-        width = (X['boxes'][:, 2] - X['boxes'][:, 0]).unsqueeze(1)
-        height = (X['boxes'][:, 3] - X['boxes'][:, 1]).unsqueeze(1)
+        width = (X['boxes'][:, 2] - X['boxes'][:, 0]).unsqueeze(1).to(self.device)
+        height = (X['boxes'][:, 3] - X['boxes'][:, 1]).unsqueeze(1).to(self.device)
 
         # calculate the weighted difference between the optimum values and the actual values
         #diff_x = w * (optim_w * torch.ones([X['boxes'].shape[0], 1]).to(self.device) - width)

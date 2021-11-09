@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from skimage import io
 import numpy as np
+import cv2
 
 
 def format_boxes(prediction, scores=True):
@@ -36,7 +37,6 @@ def plot_prediction_and_targets(image, predictions, targets, image_name, savedir
     plot.savefig("{}/{}.png".format(savedir, image_name), dpi=100)
     return "{}/{}.png".format(savedir, image_name)
 
-
 def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
     """For each row in dataframe, call plot predictions. For multi-class labels, boxes will be colored by labels. Ground truth boxes will all be same color, regardless of class.
     Args:
@@ -49,6 +49,9 @@ def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
         """
     for name, group in df.groupby("image_path"):
         image = io.imread("{}/{}".format(root_dir, name))
+        chm = image[:, :, 3]
+        image = image.astype(np.int)
+        image = image[:, :, :3]
         plot, ax = plot_predictions(image, group)
         
         if ground_truth is not None:
@@ -57,7 +60,7 @@ def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
             
         if savedir:
             plot.savefig("{}/{}.png".format(savedir, os.path.splitext(name)[0]))
-
+            cv2.imwrite("{}/{}_chm.png".format(savedir, os.path.splitext(name)[0]), chm)
 
 def plot_predictions(image, df):
     """channel order is channels first for pytorch"""
