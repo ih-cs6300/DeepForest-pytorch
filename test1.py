@@ -17,9 +17,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 np.random.seed(42)
 n_classes = 1
-rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
+rules = [FOL_green(device, 2, None, None)]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]  # default 0.1
-pi_params = [0.60, 0.40]
+pi_params = [0.60, 0.80]
 batch_size = 1
 C = 1 # default 9
 
@@ -39,12 +39,12 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46 # default 0.4
-m.config["train"]['epochs'] = 22
+m.config["train"]['epochs'] = 6
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.05
-m.config["train"]["lr"] = 0.00017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 1156 # 385 #480
+m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
+m.config["train"]["beg_incr_pi"] = 1500e6 #1156 # 385 #480
 m.config["batch_size"] = batch_size
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
@@ -59,7 +59,7 @@ m.config["train"]["n_train_batches"] = n_train_batches
 m.create_trainer()
 
 # load the lastest release model
-#m.use_release()
+m.use_release()
 
 start_time = time.time()
 m.trainer.fit(m)
@@ -77,7 +77,7 @@ results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False,
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
-for f in file_list[:33]:
+for f in file_list[:34]:
    comet.experiment.log_image('./pred_result2/' + f)
 
 comet.experiment.add_tags(["niwo", "chm"])
@@ -95,3 +95,5 @@ comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
 comet.experiment.log_code(file_name='logic_nn.py')
 comet.experiment.log_code(file_name='deepforest/predict.py')
+comet.experiment.log_code(file_name='deepforest/dataset.py')
+comet.experiment.log_code(file_name='deepforest/preprocess.py')

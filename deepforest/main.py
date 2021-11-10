@@ -318,7 +318,9 @@ class deepforest(pl.LightningModule):
 
         # make sure model is in training mode
         self.model.train()
-        loss_dict = self.model.forward(images, targets)
+        #import pdb; pdb.set_trace()
+        images2 = (images[0][:3, :, :], )
+        loss_dict = self.model.forward(images2, targets)
 
         # put model in eval mode
         self.model.eval()
@@ -327,37 +329,40 @@ class deepforest(pl.LightningModule):
         # one dictionary per image
         # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
-        preds = self.model.forward(images)          #targets must be included in training mode
-        self.get_heights(images, preds)
+        preds = self.model.forward(images2)          # targets must be included in training mode
+        self.get_heights(images, preds)             # heights added to dictionary; key = 'hts'
 
         # get special features
         eng_fea = []
-        for img, img_dict in zip(images, preds):
+        #for img, img_dict in zip(images, preds):
             # generate special features
-            eng_fea = self.has_competition(images, preds)
+            #eng_fea = self.has_competition(images, preds)
+
             # ignore competition feature for now
             #eng_fea = list(range(preds[0]['boxes'].shape[0]))
             
             #if preds[0]['boxes'].shape[0] > 0:
             #   import pdb; pdb.set_trace()
-            q_y_pred = self.logic_nn.regress(preds[0], images, [eng_fea]).to(self.device)
+
+            #q_y_pred = self.logic_nn.regress(preds[0], images, [eng_fea]).to(self.device)
+            #q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [preds[0]['hts']])
 
         
-            if (preds[0]['boxes'].shape[0] == 0):
-                huLoss = huLoss + torch.tensor([0.], requires_grad=True).to(self.device)
-            else:
-                huLoss = huLoss + F.l1_loss(preds[0]['boxes'], q_y_pred)
+            #if (preds[0]['boxes'].shape[0] == 0):
+            #    huLoss = huLoss + torch.tensor([0.], requires_grad=True).to(self.device)
+            #else:
+            #    #huLoss = huLoss + F.l1_loss(preds[0]['boxes'], q_y_pred)
+            #    huLoss = huLoss + F.binary_cross_entropy(preds[0]['scores'].float(), q_y_pred.float())
                 #huLoss = huLoss + F.mse_loss(preds[0]['boxes'], q_y_pred)
 
         #import pdb; pdb.set_trace()
-
         losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + (pi * huLoss)
 
 
         num_preds = sum([len(preds[x]['labels']) for x in range(len(images))])
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', num_preds, prog_bar=True, on_step=True)
-        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        #self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
         self.log('hu', huLoss, prog_bar=True, on_step=True)
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
@@ -511,11 +516,11 @@ class deepforest(pl.LightningModule):
 
             for row in range(boxes.shape[0]):
                 if torch.numel(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]]) > 0:
-                   ht = torch.max(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
+                   ht = torch.mean(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
                 else:
                    ht = 0.
                 assert (ht >=0) and (ht <= 1.), "Print height {}m out of range".format(ht)
-                ht_list.append(ht * 40.)
+                ht_list.append(ht)
 
             hts = torch.tensor(ht_list, requires_grad=True).reshape(-1, 1).to(self.device)   
             preds[idx]['hts'] = hts

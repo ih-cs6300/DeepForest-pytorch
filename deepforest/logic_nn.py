@@ -22,7 +22,7 @@ class LogicNN(object):
         if new_rule_fea == None:
             new_rule_fea = [None] * len(self.rules)
         distr_all = torch.tensor(0.0, requires_grad=True)
-        for i, rule in enumerate(self.rules):
+        for i, rule in enumerate(self.rules[1:]):
             distr = rule.log_distribution(self.C * self.rule_lambda[i], p_y_pred, new_rule_fea[i])
             distr_all = distr_all + distr
         distr_all += distr
@@ -42,7 +42,7 @@ class LogicNN(object):
         new_rule_fea - a list of rule features for each rule
         """
         expon_all = torch.tensor(0.0, requires_grad=True)
-        for i, rule in enumerate(self.rules):
+        for i, rule in enumerate(self.rules[:1]):
             expon = rule.expon(self.C * self.rule_lambda[i], y_pred, new_rule_fea[i])
             expon_all = expon_all + expon
 

@@ -10,6 +10,7 @@ from torchvision.ops import nms
 from deepforest import preprocess
 from deepforest import visualize
 from skimage import io
+import cv2
 
 
 def predict_image(model, image, return_plot, device, iou_threshold=0.1):
@@ -67,15 +68,18 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
 
     prediction_list = []
     for path in images:
-        image = io.imread("{}/{}".format(root_dir, path))
-
+        #image = io.imread("{}/{}".format(root_dir, path))
+        img_name = "{}/{}".format(root_dir, path)
+        image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
+      
         image = preprocess.preprocess_image(image)
 
         # Just predict the images, even though we have the annotations
         if not device.type == "cpu":
             image = image.to(device)
 
-        prediction = model(image)
+        #prediction = model(image)
+        prediction = model(image[:, :3, :, :])
         #########################################################################################
         # my addition; replace student output with teacher output
         #if (len(prediction[0]['boxes']) > 0):

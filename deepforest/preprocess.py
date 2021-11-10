@@ -18,12 +18,21 @@ import cv2
 def preprocess_image(image):
     """Preprocess a single RGB numpy array as a prediction from channels last, to channels first"""
     # image format [batch x channels x ht x wd]
+
+    #_, mask = cv2.threshold(image[:, :, 3], 2, 1, cv2.THRESH_BINARY)  # x < 1 ==> 0; x > 1 ==> 25    
+    #masked = np.transpose(image[:, :, :3], (2, 0, 1))     #* mask
+    #image[:, :, :3] = np.transpose(masked, (1, 2, 0))
+    #rnd = np.random.randint(0, 1e6)    
+    #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
+    #cv2.imwrite("img-" + str(rnd) + ".png", image[:, :, :3])
+
+    #div_mat = np.ones(image.shape, dtype=np.float32)
+    #div_mat[:, :, :3] = 255. 
+    #div_mat[:, :, 3] = 60.
+    #image = image / div_mat
+
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
-    #image = image / 255
-    div_mat = torch.ones(image.shape, dtype=torch.float32)
-    div_mat[:, :3, :, :] = 255.
-    div_mat[:, 3, :, :] = 40.
-    image = image / div_mat
+    image = image / 255
 
     return image
 

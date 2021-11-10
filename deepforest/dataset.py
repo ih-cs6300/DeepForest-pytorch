@@ -55,13 +55,21 @@ class TreeDataset(Dataset):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
         #image = io.imread(img_name)
         image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
+        #_, mask = cv2.threshold(image[:, :, 3], 2, 1, cv2.THRESH_BINARY)  # x < 1 ==> 0; x > 1 ==> 255
+        #rnd = np.random.randint(0, 1e4)
+        #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
+
+        #masked = cv2.bitwise_and(image[:, :, :3], image[:, :, :3], mask=mask)
+        #masked = np.transpose(image[:, :, :3], (2, 0, 1))        #* mask
+        #image[:, :, :3] = np.transpose(masked, (1, 2, 0))
+        #cv2.imwrite("masked-" + str(rnd) + ".png", image[:, :, :3])
  
-        div_mat = np.ones(image.shape, dtype=np.float32)
-        div_mat[:, :, :3] = 255.
-        div_mat[:, :, 3] = 40.
-        image = image / div_mat
+        #div_mat = np.ones(image.shape, dtype=np.float32)
+        #div_mat[:, :, :3] = 255. 
+        #div_mat[:, :, 3] = 60.
+        #image = image / div_mat
  
-        #image = image / 255
+        image = image / 255
         
         try:
             check_image(image)
