@@ -306,7 +306,7 @@ class deepforest(pl.LightningModule):
         targets: tuple of dictionaries.  dictinary has keys 'boxes' and 'labels'. values are tensors of torch.float64
         """
 
-        path, images, targets = batch
+        path, images, targets, chm = batch
         curr_iter = self.batch_cnt * 1. / self.config["train"]["n_train_batches"]
         if self.global_step > self.config['train']["beg_incr_pi"]:
            self.batch_cnt += 1

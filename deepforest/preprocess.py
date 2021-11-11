@@ -14,27 +14,27 @@ import torch
 
 import rasterio
 import cv2
+from deepforest.dataset import make_chm_mask
+from deepforest.dataset import apply_chm_transform
 
 def preprocess_image(image):
     """Preprocess a single RGB numpy array as a prediction from channels last, to channels first"""
     # image format [batch x channels x ht x wd]
+    chm = image[:, :, 3]
+    image = image[:, :, :3]
+    
+    mask = make_chm_mask(chm)
+    masked, image = apply_chm_transform(image, mask)
 
-    #_, mask = cv2.threshold(image[:, :, 3], 2, 1, cv2.THRESH_BINARY)  # x < 1 ==> 0; x > 1 ==> 25    
-    #masked = np.transpose(image[:, :, :3], (2, 0, 1))     #* mask
-    #image[:, :, :3] = np.transpose(masked, (1, 2, 0))
-    #rnd = np.random.randint(0, 1e6)    
-    #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
-    #cv2.imwrite("img-" + str(rnd) + ".png", image[:, :, :3])
-
-    #div_mat = np.ones(image.shape, dtype=np.float32)
-    #div_mat[:, :, :3] = 255. 
-    #div_mat[:, :, 3] = 60.
-    #image = image / div_mat
+    rnd = np.random.randint(0, 1e6)    
+    cv2.imwrite("mask-" + str(rnd) + ".png", mask)
+    cv2.imwrite("masked-" + str(rnd) + ".png", image[:, :, ::-1])  # rgb to bgr
 
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
     image = image / 255
+    chm = chm / 35
 
-    return image
+    return image, chm
 
 
 def image_name_from_path(image_path):

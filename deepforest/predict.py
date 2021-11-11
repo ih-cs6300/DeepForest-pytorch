@@ -69,18 +69,13 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
     prediction_list = []
     for path in images:
         image = io.imread("{}/{}".format(root_dir, path))
-        #img_name = "{}/{}".format(root_dir, path)
-        #image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
-        image = image[:, :, :3]
-        #image = image[:, :, ::-1]  #bgr to rgb
-        image = preprocess.preprocess_image(image)
+        image, chm = preprocess.preprocess_image(image)
 
         # Just predict the images, even though we have the annotations
         if not device.type == "cpu":
             image = image.to(device)
 
         prediction = model(image)
-        #prediction = model(image[:, :3, :, :])
         #########################################################################################
         # my addition; replace student output with teacher output
         #if (len(prediction[0]['boxes']) > 0):

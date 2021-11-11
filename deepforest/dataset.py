@@ -29,7 +29,18 @@ def get_transform(augment):
         transforms.append(T.RandomHorizontalFlip(0.5))
     return T.Compose(transforms)
 
+def make_chm_mask(chm):
+    _, mask = cv2.threshold(chm, 2, 1, cv2.THRESH_BINARY)  # x < 2 ==> 0; x > 2 ==> 1
 
+    kernel = np.ones((7,7),np.uint8)
+    mask_morph = cv2.dilate(mask, kernel, iterations=1)
+
+    return mask_morph   
+ 
+def apply_chm_transform(image, mask):
+    masked = np.transpose(image, (2, 0, 1)) * mask
+    image = np.transpose(masked, (1, 2, 0))
+    return masked, image
 
 class TreeDataset(Dataset):
 
@@ -54,28 +65,20 @@ class TreeDataset(Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
         image = io.imread(img_name)
+        chm = image[:, :, 3]
         image = image[:, :, :3]
-        #image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)[:, :, :3]
-        #image = image[:, :, ::-1] # bgr to rgb
-        #_, mask = cv2.threshold(image[:, :, 3], 2, 1, cv2.THRESH_BINARY)  # x < 1 ==> 0; x > 1 ==> 255
-        #rnd = np.random.randint(0, 1e4)
-        #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
 
-        #masked = cv2.bitwise_and(image[:, :, :3], image[:, :, :3], mask=mask)
-        #masked = np.transpose(image[:, :, :3], (2, 0, 1))        #* mask
-        #image[:, :, :3] = np.transpose(masked, (1, 2, 0))
-        #cv2.imwrite("masked-" + str(rnd) + ".png", image[:, :, :3])
- 
-        #div_mat = np.ones(image.shape, dtype=np.float32)
-        #div_mat[:, :, :3] = 255. 
-        #div_mat[:, :, 3] = 60.
-        #image = image / div_mat
+        mask = make_chm_mask(chm)
+        #cv2.imwrite(img_name.split(".")[0] + "-mask" + ".png", mask)
+
+        masked, image = apply_chm_transform(image, mask)
+        #cv2.imwrite(img_name.split(".")[0] + "-masked" + ".png", image)
  
         image = image / 255
+        chm = chm / 35
         
         try:
-            #check_image(image)
-            pass
+            check_image(image)
         except Exception as e:
             raise Exception("dataloader failed with exception for image: {}",format(img_name))
 
@@ -93,5 +96,5 @@ class TreeDataset(Dataset):
         if self.transform:
             image, targets = self.transform(image, targets)
 
-        return self.image_names[idx], image, targets
+        return self.image_names[idx], image, targets, chm
 
