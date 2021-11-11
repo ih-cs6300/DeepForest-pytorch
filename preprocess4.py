@@ -178,19 +178,20 @@ def combine_rgb_chm(working_dir, img_list, chm_list):
         # chm only has one channel
         arr2 = chm.read(1)
 
+        import pdb; pdb.set_trace()
         # resize chm to same size as rgb
         arr2 = cv2.resize(arr2, arr1.shape[1:][::-1], interpolation=cv2.INTER_LINEAR)
 
         # -9999 represents no data, set to 0 before scaling
         arr2 = np.where(arr2 < 0, 0, arr2)
         #arr2 = scaler.fit_transform(arr2)
-        arr2 = np.clip(arr2, 0., 255.)    # make sure all values between 0 and 255
+        arr2 = np.clip(arr2, 0., 255.).astype(np.uint8)    # make sure all values between 0 and 255
 
         # concatenate rgb and chm along channel axis; this is an np array
         rgb_chm = np.concatenate([arr1, np.expand_dims(arr2, 0)], axis=0)
         
         # save new geotiff to file; overwrites the original file
-        write_geotiff(working_dir, rgb, fname + "1", rgb_chm)        
+        write_geotiff(working_dir, rgb, "temp_" + fname, rgb_chm)        
 
         # close rgb and chm file
         rgb.close()
@@ -201,7 +202,7 @@ def combine_rgb_chm(working_dir, img_list, chm_list):
         remove(join(working_dir, chm_list[idx]))
 
         # copy new rgb to old rgb name
-        move(join(working_dir, fname + "1"), join(working_dir, fname))                
+        move(join(working_dir, "temp_" + fname), join(working_dir, fname))                
         
    
 #####################################################################################################################################################################
