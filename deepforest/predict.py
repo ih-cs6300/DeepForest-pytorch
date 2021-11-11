@@ -71,7 +71,8 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
         image = io.imread("{}/{}".format(root_dir, path))
         #img_name = "{}/{}".format(root_dir, path)
         #image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
-      
+        image = image[:, :, :3]
+        #image = image[:, :, ::-1]  #bgr to rgb
         image = preprocess.preprocess_image(image)
 
         # Just predict the images, even though we have the annotations

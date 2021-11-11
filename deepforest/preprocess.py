@@ -31,7 +31,6 @@ def preprocess_image(image):
     #div_mat[:, :, 3] = 60.
     #image = image / div_mat
 
-    image = image[:, :, :3]
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
     image = image / 255
 

@@ -54,7 +54,9 @@ class TreeDataset(Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
         image = io.imread(img_name)
-        #image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
+        image = image[:, :, :3]
+        #image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)[:, :, :3]
+        #image = image[:, :, ::-1] # bgr to rgb
         #_, mask = cv2.threshold(image[:, :, 3], 2, 1, cv2.THRESH_BINARY)  # x < 1 ==> 0; x > 1 ==> 255
         #rnd = np.random.randint(0, 1e4)
         #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
@@ -69,7 +71,6 @@ class TreeDataset(Dataset):
         #div_mat[:, :, 3] = 60.
         #image = image / div_mat
  
-        image = image[:, :, :3]
         image = image / 255
         
         try:
