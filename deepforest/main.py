@@ -314,13 +314,9 @@ class deepforest(pl.LightningModule):
         #calculate pi
         pi = self.get_pi(curr_iter)
 
-        huLoss = torch.tensor([0.], requires_grad=True).to(self.device)
-
         # make sure model is in training mode
         self.model.train()
-        #import pdb; pdb.set_trace()
-        images2 = (images[0][:3, :, :], )
-        loss_dict = self.model.forward(images2, targets)
+        loss_dict = self.model.forward(images, targets)
 
         # put model in eval mode
         self.model.eval()
@@ -329,8 +325,8 @@ class deepforest(pl.LightningModule):
         # one dictionary per image
         # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
-        preds = self.model.forward(images2)          # targets must be included in training mode
-        self.get_heights(images, preds)             # heights added to dictionary; key = 'hts'
+        preds = self.model.forward(images)          # targets must be included in training mode
+        #self.get_heights(images, preds)             # heights added to dictionary; key = 'hts'
 
         # get special features
         eng_fea = []
@@ -356,17 +352,17 @@ class deepforest(pl.LightningModule):
                 #huLoss = huLoss + F.mse_loss(preds[0]['boxes'], q_y_pred)
 
         #import pdb; pdb.set_trace()
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + (pi * huLoss)
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) #+ (pi * huLoss)
 
 
         num_preds = sum([len(preds[x]['labels']) for x in range(len(images))])
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', num_preds, prog_bar=True, on_step=True)
         #self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
-        self.log('hu', huLoss, prog_bar=True, on_step=True)
+        #self.log('hu', huLoss, prog_bar=True, on_step=True)
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
-            comet.experiment.log_metric("huLoss", huLoss)
+            #comet.experiment.log_metric("huLoss", huLoss)
         return losses
 
     def validation_step1(self, batch, batch_idx):

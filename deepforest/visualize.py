@@ -49,7 +49,7 @@ def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
         """
     for name, group in df.groupby("image_path"):
         image = io.imread("{}/{}".format(root_dir, name))
-        chm = image[:, :, 3]
+        #chm = image[:, :, 3]
         image = image.astype(np.int)
         image = image[:, :, :3]
         plot, ax = plot_predictions(image, group)
@@ -60,7 +60,7 @@ def plot_prediction_dataframe(df, root_dir, ground_truth=None, savedir=None):
             
         if savedir:
             plot.savefig("{}/{}.png".format(savedir, os.path.splitext(name)[0]))
-            cv2.imwrite("{}/{}_chm.png".format(savedir, os.path.splitext(name)[0]), chm)
+            #cv2.imwrite("{}/{}_chm.png".format(savedir, os.path.splitext(name)[0]), chm)
 
 def plot_predictions(image, df):
     """channel order is channels first for pytorch"""

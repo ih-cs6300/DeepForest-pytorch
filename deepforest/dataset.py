@@ -53,8 +53,8 @@ class TreeDataset(Dataset):
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
-        #image = io.imread(img_name)
-        image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
+        image = io.imread(img_name)
+        #image = cv2.imread(img_name, cv2.IMREAD_UNCHANGED)
         #_, mask = cv2.threshold(image[:, :, 3], 2, 1, cv2.THRESH_BINARY)  # x < 1 ==> 0; x > 1 ==> 255
         #rnd = np.random.randint(0, 1e4)
         #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
@@ -72,7 +72,8 @@ class TreeDataset(Dataset):
         image = image / 255
         
         try:
-            check_image(image)
+            #check_image(image)
+            pass
         except Exception as e:
             raise Exception("dataloader failed with exception for image: {}",format(img_name))
 
