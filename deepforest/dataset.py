@@ -69,6 +69,7 @@ class TreeDataset(Dataset):
         #div_mat[:, :, 3] = 60.
         #image = image / div_mat
  
+        image = image[:, :, :3]
         image = image / 255
         
         try:

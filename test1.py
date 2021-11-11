@@ -24,8 +24,8 @@ batch_size = 1
 C = 1 # default 9
 
 # directory with image and annotation data
-train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
-eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
 train_csv = os.path.join(train_dir, "NIWO-train.csv") 
 val_csv = os.path.join(train_dir, "NIWO-val.csv")   
