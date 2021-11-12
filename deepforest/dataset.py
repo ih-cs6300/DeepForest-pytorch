@@ -32,7 +32,7 @@ def get_transform(augment):
 def make_chm_mask(chm):
     _, mask = cv2.threshold(chm, 2, 1, cv2.THRESH_BINARY)  # x < 2 ==> 0; x > 2 ==> 1
 
-    kernel = np.ones((7,7),np.uint8)
+    kernel = np.ones((7, 7),np.uint8)
     mask_morph = cv2.dilate(mask, kernel, iterations=1)
 
     return mask_morph   

@@ -26,9 +26,9 @@ def preprocess_image(image):
     mask = make_chm_mask(chm)
     masked, image = apply_chm_transform(image, mask)
 
-    rnd = np.random.randint(0, 1e6)    
-    cv2.imwrite("mask-" + str(rnd) + ".png", mask)
-    cv2.imwrite("masked-" + str(rnd) + ".png", image[:, :, ::-1])  # rgb to bgr
+    #rnd = np.random.randint(0, 1e6)    
+    #cv2.imwrite("mask-" + str(rnd) + ".png", mask)
+    #cv2.imwrite("masked-" + str(rnd) + ".png", image[:, :, ::-1])  # rgb to bgr
 
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
     image = image / 255
