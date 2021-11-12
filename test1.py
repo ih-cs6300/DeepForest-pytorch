@@ -27,9 +27,9 @@ C = 1 # default 9
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
-train_csv = os.path.join(train_dir, "NIWO-train.csv") 
-val_csv = os.path.join(train_dir, "NIWO-val.csv")   
-test_csv = os.path.join(eval_dir, "NIWO-test.csv")
+train_csv = os.path.join(train_dir, "TEAK-train.csv") 
+val_csv = os.path.join(train_dir, "TEAK-val.csv")   
+test_csv = os.path.join(eval_dir, "TEAK-test.csv")
 
 """## Training & Evaluating Using GPU"""
 
