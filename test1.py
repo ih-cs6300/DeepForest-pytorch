@@ -27,9 +27,9 @@ C = 9  # 6
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(eval_dir, "NIWO-test.csv")    #os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(train_dir, "TEAK-train.csv")  #os.path.join(data_dir, "train.csv")
+val_csv = os.path.join(train_dir, "TEAK-val.csv")      #os.path.join(data_dir, "val.csv")
+test_csv = os.path.join(eval_dir, "TEAK-test.csv")    #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -79,7 +79,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags([os.path.basename(test_csv.split("-")[0].lower())])
+comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower()])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
