@@ -29,7 +29,7 @@ test_csv = os.path.join(eval_dir, "NIWO-test.csv")    #os.path.join(data_dir, "t
 """## Training & Evaluating Using GPU"""
 
 # initialize the model and change the corresponding config file
-m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to(device)
+m = main.deepforest()
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
@@ -66,14 +66,14 @@ try:
 except OSError as error:
    pass
 
-results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
 for f in file_list[:34]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower()])
+comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower(), "baseline"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
