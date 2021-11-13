@@ -44,7 +44,7 @@ m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 231
+m.config["train"]["beg_incr_pi"] = 231e6
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
@@ -71,6 +71,7 @@ try:
    os.mkdir(save_dir)
 except OSError as error:
    pass
+
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
@@ -78,7 +79,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:33]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["niwo"])
+comet.experiment.add_tags([os.path.basename(test_csv.split("-")[0].lower())])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
