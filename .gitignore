@@ -1,3 +1,4 @@
+
 *.h5
 *__pycache__*
 .DS_Store
@@ -5,4 +6,19 @@
 current_release.csv
 *.pl
 *.pt
-tests/__pycache__
+tests/__pycache_
+annotations/
+checkpoints/
+train_data_folder/
+train_data_folder2/
+annotations/
+pred_result/
+pred_result2/
+evaluation3/
+training3/
+evaluation4/
+training4/
+
+.idea/
+comet_test.py
+comet.py
