@@ -66,7 +66,7 @@ try:
 except OSError as error:
    pass
 
-results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir= save_dir)
+results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir = save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 

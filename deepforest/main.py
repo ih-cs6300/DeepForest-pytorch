@@ -375,6 +375,7 @@ class deepforest(pl.LightningModule):
                                         ground_df=ground_df,
                                         root_dir=root_dir,
                                         iou_threshold=iou_threshold,
-                                        show_plot=show_plot)
+                                        show_plot=show_plot,
+                                        savedir=savedir)
 
         return results
