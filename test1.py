@@ -18,8 +18,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
-rule_lambdas = [1]
-pi_params = [0.95, 0.05]  #0.9, 0
+rule_lambdas = [1e3]
+pi_params = [0.95, 0.5]  #0.9, 0
 batch_size = 1
 C = 9  # 6
 
@@ -27,9 +27,9 @@ C = 9  # 6
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "TEAK-train.csv")  #os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(train_dir, "TEAK-val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(eval_dir, "TEAK-test.csv")    #os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(train_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
+val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
+test_csv = os.path.join(eval_dir, "NIWO-test.csv")    #os.path.join(data_dir, "test_small.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -44,7 +44,7 @@ m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = 231e6
+m.config["train"]["beg_incr_pi"] = 67 * 6
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
@@ -72,11 +72,11 @@ try:
 except OSError as error:
    pass
 
-results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.4, show_plot = False, savedir= save_dir)
+results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir= save_dir)
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
-for f in file_list[:33]:
+for f in file_list[:34]:
    comet.experiment.log_image('./pred_result2/' + f)
 
 comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower()])

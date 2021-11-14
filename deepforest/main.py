@@ -340,7 +340,7 @@ class deepforest(pl.LightningModule):
         else:
             huLoss = torch.tensor(0., requires_grad=True).to(self.device)
 
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * huLoss
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * (huLoss + loss_dict['bbox_regression'])
 
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
@@ -421,7 +421,8 @@ class deepforest(pl.LightningModule):
         if not self.device.type == "cpu":
             self.model = self.model.to(self.device)
 
-        predictions = predict.predict_file(model=self.model,
+        predictions = predict.predict_file(self,
+                                           model=self.model,
                                            csv_file=csv_file,
                                            root_dir=root_dir,
                                            savedir=savedir,
