@@ -1,14 +1,11 @@
 #!/bin/bash
-# example arg1 = "./training3/niwo_folds"
-folds=`ls $1/*.csv`
+# implements 5x2cv 
+# file names are fold_k0.csv and fold_k1.csv where k in [0, 4]
 
-for entry in $folds 
-do
-   find $1 -type f | sort | grep -v $entry | xargs awk -F, '((NR==1) &&(FNR ==1)){print > "./training3/temp-train.csv"}; (FNR > 1){print >> "./training3/temp-train.csv"}'
-   wc -l ./training3/NIWO-train.csv
-   wc -l $entry
-   wc -l ./training3/temp-train.csv
-   
+for idx in `seq 0 4`
+do 
    rm ./pred_result2/*
-   python3 test1.py
+   python3 test2.py --train fold_${idx}0.csv --test fold_${idx}1.csv
+   python3 test2.py --train fold_${idx}1.csv --test fold_${idx}0.csv
+   echo ""
 done

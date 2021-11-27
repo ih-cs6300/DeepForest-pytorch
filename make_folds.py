@@ -16,11 +16,17 @@ parser.add_argument('--wdir', type=str, required=True, help='working directory')
 parser.add_argument('--sdir', type=str, required=True, help='storage directory')
 parser.add_argument('--fname', type=str, required=True, help='name of file to split')
 parser.add_argument('--k', type=int, required=True, help='number of folds')
+parser.add_argument('--fivex2cv', type=bool, required=True, help='create folds for 5x2cv')
 args = parser.parse_args()
+
+np.random.seed(42)
 
 # make sure directory and file exist
 assert (isdir("./" + args.wdir)), "Directory {} doesn't exist".format(args.wdir)
 assert (isfile(join(args.wdir, args.fname))), "Directory {} doesn't exist".format(join(args.wdir, args.fname))
+
+if (args.fivex2cv == True):
+    assert (args.k == 2), "Number of folds, {}, contradicts 5x2cv".format(args.k)
 
 print("\n\nReading {}...".format(args.fname))
 # read csv
@@ -52,19 +58,40 @@ else:
       if (len(glob(join(args.wdir, args.sdir, "*"))) > 0): 
          remove(join(args.wdir, args.sdir, "*"))
 
-# shuffle image names and split them into folds
-np.random.shuffle(group_names)
-fold_imgs = np.array_split(group_names, args.k)
+if args.fivex2cv == False:
+    # shuffle image names and split them into folds
+    np.random.shuffle(group_names)
+    fold_imgs = np.array_split(group_names, args.k)
 
-# write folds to file
-total_len = 0
-for idx in range(args.k):
-    fold_name = join(args.wdir, args.sdir, "fold_" + str(idx) + ".csv")
-    print("Saving {}...".format(fold_name))
-    temp_df = df_all[df_all['image_path'].isin(fold_imgs[idx])]
-    print("  {} instances...".format(len(temp_df)))
-    total_len += len(temp_df)
-    temp_df.to_csv(fold_name, index=False, header=True)
+    # write folds to file
+    total_len = 0
+    for idx in range(args.k):
+        fold_name = join(args.wdir, args.sdir, "fold_" + str(idx) + ".csv")
+        print("Saving {}...".format(fold_name))
+        temp_df = df_all[df_all['image_path'].isin(fold_imgs[idx])]
+        print("  {} instances...".format(len(temp_df)))
+        total_len += len(temp_df)
+        temp_df.to_csv(fold_name, index=False, header=True)
 
-print("{} lines written".format(total_len))
+    print("{} lines written".format(total_len))
+
+else:
+    #import pdb; pdb.set_trace()
+    for idx1 in range(5):
+        total_len = 0
+
+        # shuffle image names and split them into folds
+        np.random.shuffle(group_names)
+        fold_imgs = np.array_split(group_names, args.k)
+        
+        for idx2 in range(2):
+            fold_name = join(args.wdir, args.sdir, "fold_" + str(idx1) + str(idx2) + ".csv")
+            print("Saving {}...".format(fold_name))
+            temp_df = df_all[df_all['image_path'].isin(fold_imgs[idx2])]
+            print("  {} instances...".format(len(temp_df)))
+            total_len += len(temp_df)
+            temp_df.to_csv(fold_name, index=False, header=True)
+        
+        print("{} lines written\n".format(total_len))
+            
 print("Done!")
