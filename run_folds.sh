@@ -1,18 +1,18 @@
 #!/bin/bash
-# example arg1 = "./training3/niwo_folds"
-folds=`ls $1/*.csv`
+# implements 5x2cv 
+# file names are fold_k0.csv and fold_k1.csv where k in [0, 4]
 
-for entry in $folds 
-do
-   find $1 -type f | sort | grep -v $entry | xargs awk -F, '((NR==1) &&(FNR ==1)){print > "./training3/temp-train.csv"}; (FNR > 1){print >> "./training3/temp-train.csv"}'
-   cp $entry ./training3/$(basename $entry)
-   wc -l ./training3/NIWO-train.csv
-   wc -l ./training3/temp-train.csv
-   wc -l ./training3/$(basename $entry)
-
+folds_dir="training3/niwo_folds"
+for idx in `seq 0 4`
+do 
+   echo ""
    rm ./pred_result2/*
-   rm ./checkpoints/*
-   python3 test2.py
-   rm ./training3/fold_?.csv
-   rm ./core.*
+   echo "fold_${idx}:"
+   cp ${folds_dir}/fold_${idx}?.csv training3/
+   python3 test2.py --site niwo --train_dir training3 --test_dir training3 --train_ann fold_${idx}0.csv --test_ann fold_${idx}1.csv
+   python3 test2.py --site niwo --train_dir training3 --test_dir training3 --train_ann fold_${idx}1.csv --test_ann fold_${idx}0.csv
+   rm training3/fold_${idx}?.csv 
+   rm core.*
+   echo ""
+   echo ""
 done
