@@ -29,6 +29,8 @@ test_csv = os.path.join(eval_dir, "NIWO-test.csv")
 """## Training & Evaluating Using GPU"""
 
 # initialize the model and change the corresponding config file
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)
 m = main.deepforest()
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
