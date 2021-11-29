@@ -18,7 +18,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
-rule_lambdas = [1e3]
+rule_lambdas = [1e2]
 pi_params = [0.95, 0.5]  #0.9, 0
 batch_size = 1
 C = 9  # 6
@@ -27,13 +27,15 @@ C = 9  # 6
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "NIWO-train.csv")  #os.path.join(data_dir, "train.csv")
-val_csv = os.path.join(train_dir, "NIWO-val.csv")      #os.path.join(data_dir, "val.csv")
-test_csv = os.path.join(eval_dir, "NIWO-test.csv")    #os.path.join(data_dir, "test_small.csv")
+train_csv = os.path.join(train_dir, "NIWO-train.csv")
+val_csv = os.path.join(train_dir, "NIWO-val.csv")
+test_csv = os.path.join(eval_dir, "NIWO-test.csv")
 
 """## Training & Evaluating Using GPU"""
 
 # initialize the model and change the corresponding config file
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)
 m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to(device)
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
@@ -44,7 +46,7 @@ m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
 m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
-m.config["train"]["beg_incr_pi"] = round(67 * 5.5)
+m.config["train"]["beg_incr_pi"] = round(67 * 5)
 
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 

@@ -19,7 +19,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
-rule_lambdas = [1e3]
+rule_lambdas = [1e2]
 pi_params = [0.95, 0.5]  #0.9, 0
 batch_size = 1
 C = 9  # 6
@@ -45,6 +45,8 @@ test_csv = os.path.join(eval_dir, args.test_ann)
 """## Training & Evaluating Using GPU"""
 
 # initialize the model and change the corresponding config file
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)
 m = main.deepforest(rules, rule_lambdas, pi_params, C, num_classes=n_classes).to(device)
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
@@ -61,7 +63,7 @@ print("Training csv: {}".format(m.config["train"]["csv_file"]))
 training_data = m.train_dataloader()
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 5.5)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 5)
 
 # create a pytorch lighting trainer used to training
 #checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
