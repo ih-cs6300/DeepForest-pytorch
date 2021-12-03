@@ -19,9 +19,9 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1e2]
-pi_params = [0.95, 0.5]  #0.9, 0
+pi_params = [0.95, 0.5] 
 batch_size = 1
-C = 9  # 6
+C = C = 0.000125
 
 # directory with image and annotation data
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
@@ -98,4 +98,3 @@ comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
 comet.experiment.log_code(file_name='deepforest/logic_nn.py')
 comet.experiment.log_code(file_name='deepforest/predict.py')
-
