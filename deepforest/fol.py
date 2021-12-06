@@ -251,10 +251,14 @@ class FOL_bbox_2big(FOL):
 
     def log_distribution(self, w, X=None, F=None):
         #import pdb; pdb.set_trace()
-        f_1 = F.reshape(-1, 1)
+        # F[0] is mask F[1] is tensor of height function output
+        mask = F[0]
+        mask = torch.tile(mask, (1, 2)).to(self.device)
+        F = F[1].to(self.device)
+        f_1 = F.reshape(-1, 1).to(self.device)
         f_0 = 1. - f_1
         f = torch.cat([f_0, f_1], 1).to(self.device)
-        f = w * f
+        f = w * mask * f
         return f
 
 

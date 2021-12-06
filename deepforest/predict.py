@@ -78,9 +78,14 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
         prediction = model(image)
 
         ##############################################################################
-        # my addition; replace student output with teacher output
+        # my addition; replace student output with teacher output   
+        #import pdb; pdb.set_trace()
         if (len(prediction[0]['scores']) > 0):
+            mask = m_obj.has_competition(image, prediction)
+            mask = torch.tensor(mask, dtype=torch.float, requires_grad=True).reshape(-1, 1)
+            mask = mask.to(m_obj.device)
             eng_fea = m_obj.bbox_2big(image, prediction)
+            eng_fea = (mask, eng_fea)
             q_y_pred = m_obj.logic_nn.predict(prediction[0]['scores'], image, [eng_fea]).to(m_obj.device)
             prediction[0]['scores'] = q_y_pred.float()
         ##############################################################################

@@ -22,7 +22,7 @@ rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, 
 rule_lambdas = [1e2]
 pi_params = [0.95, 0.5]  #0.9, 0
 batch_size = 1
-C = 9  # 6
+C = 0.000125  # 6
 
 
 parser = argparse.ArgumentParser()
@@ -122,4 +122,3 @@ comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
 comet.experiment.log_code(file_name='deepforest/logic_nn.py')
 comet.experiment.log_code(file_name='deepforest/predict.py')
-

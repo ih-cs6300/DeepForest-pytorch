@@ -332,7 +332,11 @@ class deepforest(pl.LightningModule):
         eng_fea = []
         for img, img_dict in zip(images, preds):
             # generate special features
+            mask = self.has_competition(images, preds)
+            mask = torch.tensor(mask, dtype=torch.float, requires_grad=True).reshape(-1, 1)
+            mask = mask.to(self.device)
             eng_fea = self.bbox_2big(images, preds)
+            eng_fea = (mask, eng_fea)
         
         if (len(preds[0]['scores']) > 0):
             q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)
@@ -486,9 +490,9 @@ class deepforest(pl.LightningModule):
                 trees_competing[pair[0]] = 1
                 trees_competing[pair[1]] = 1
 
-        res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
+        #res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
 
-        return res
+        return trees_competing
 
     def scaleBB(self, coords, scaleX, scaleY, device):
         # takes in bounding box coordinates as [x1, y1, x2, y2] and returns a scaled bounding box with the same centroid
