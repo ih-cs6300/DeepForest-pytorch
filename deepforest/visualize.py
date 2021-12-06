@@ -33,7 +33,7 @@ def plot_prediction_and_targets(image, predictions, targets, image_name, savedir
     plot, ax = plot_predictions(image, prediction_df)
     target_df = format_boxes(targets, scores=False)
     plot = add_annotations(plot, ax, target_df)
-    plot.savefig("{}/{}.png".format(savedir, image_name), dpi=300)
+    plot.savefig("{}/{}.png".format(savedir, image_name), dpi=100)
     return "{}/{}.png".format(savedir, image_name)
 
 
@@ -66,7 +66,7 @@ def plot_predictions(image, df):
     df['numeric'] = df['label'].astype('category').cat.codes
 
     #What size does the figure need to be in inches to fit the image?
-    dpi=300
+    dpi=100
     height, width, nbands = image.shape
     figsize = width / float(dpi), height / float(dpi)
 

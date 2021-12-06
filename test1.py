@@ -22,9 +22,9 @@ batch_size = 1
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "NIWO-train.csv")  
-val_csv = os.path.join(train_dir, "NIWO-val.csv")    
-test_csv = os.path.join(eval_dir, "NIWO-test.csv") 
+train_csv = os.path.join(train_dir, "TEAK-train.csv")  
+val_csv = os.path.join(train_dir, "TEAK-val.csv")    
+test_csv = os.path.join(eval_dir, "TEAK-test.csv") 
 
 """## Training & Evaluating Using GPU"""
 
