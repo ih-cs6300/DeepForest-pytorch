@@ -536,5 +536,5 @@ class deepforest(pl.LightningModule):
         bb_area = x_len * y_len
 
         #return the index of bboxes with areas greater than X
-        res = sigma(0.5 * (400 - bb_area))
+        res = sigma(0.5 * (2304 - bb_area))
         return res
