@@ -363,6 +363,15 @@ class deepforest(pl.LightningModule):
            mask = torch.from_numpy(mask)
            mask = mask.to(self.device)
 
+           
+           # competition 
+           mask_comp = self.has_competition(images, preds)
+           mask_comp = torch.tensor(mask_comp, dtype=torch.float, requires_grad=True).reshape(-1, 1)
+           mask_comp = mask_comp.to(self.device)
+
+           # combine competition with y+
+           mask = mask * mask_comp
+
            eng_fea = (mask, eng_fea)
         else:
            mask = np.zeros([len(predictions), 1], dtype=np.float32)
@@ -523,9 +532,9 @@ class deepforest(pl.LightningModule):
                 trees_competing[pair[0]] = 1
                 trees_competing[pair[1]] = 1
 
-        res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
+        #res = torch.where(torch.tensor(trees_competing) == 1.)[0].tolist()
 
-        return res
+        return trees_competing
 
     def scaleBB(self, coords, scaleX, scaleY, device):
         # takes in bounding box coordinates as [x1, y1, x2, y2] and returns a scaled bounding box with the same centroid
@@ -569,5 +578,5 @@ class deepforest(pl.LightningModule):
         bb_area = x_len * y_len
 
         #return the index of bboxes with areas greater than X
-        res = sigma(0.5 * (2304 - bb_area))
+        res = sigma(1e-6 * (2304 - bb_area))
         return res

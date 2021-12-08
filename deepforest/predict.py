@@ -102,6 +102,11 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
             mask = torch.from_numpy(mask)
             mask = mask.to(m_obj.device)
 
+            mask_comp = m_obj.has_competition(image, prediction)
+            mask_comp = torch.tensor(mask_comp, dtype=torch.float, requires_grad=True).reshape(-1, 1)
+            mask_comp = mask_comp.to(m_obj.device)
+            mask = mask * mask_comp
+
             eng_fea = (mask, eng_fea)
             q_y_pred = m_obj.logic_nn.predict(prediction[0]['scores'], image, [eng_fea]).to(m_obj.device)
             prediction[0]['scores'] = q_y_pred.float()
