@@ -21,7 +21,7 @@ rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, 
 rule_lambdas = [1e2]
 pi_params = [0.95, 0.5]  #0.9, 0
 batch_size = 1
-C = 9  # 6
+C = 0.01  # 6
 
 # directory with image and annotation data
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
@@ -41,7 +41,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46  # default 0.4
-m.config["train"]['epochs'] = 7
+m.config["train"]['epochs'] = 5
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
@@ -50,7 +50,7 @@ m.config["train"]["lr"] = 0.0017997179587414414  # default 0.001
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
 training_data = m.train_dataloader()
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 5)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 4)
 
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
