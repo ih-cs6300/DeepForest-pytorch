@@ -1,69 +1,55 @@
-# this script creates the datasets needed TEAK
+# this script creates the datasets needed MLBS
 
 import pandas as pd
 import numpy as np
 from os.path import join
 from os.path import isdir
 from glob import glob
-#from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 import argparse
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--tr', type=str, required=True, help='training directory')
 parser.add_argument('--ev', type=str, required=True, help='evaluation directory')
 args = parser.parse_args()
 
+np.random.seed(42)
+
 # evaluation3 and training3 have no chm data included
 # evaluation4 and training4 have chm data included
 
-train_dir =  args.tr # "./training4"
-eval_dir =   args.ev # "./evaluation4"
+train_dir =  args.tr    # "./training4"
+eval_dir =   args.ev    # "./evaluation4"
 
 assert (isdir("./" + train_dir)), "Directory {} doesn't exist".format(train_dir)
 assert (isdir("./" + eval_dir)),  "Directory {} doesn't exist".format(eval_dir)
 
-train_csv = "all-train.csv"
-val_csv = "all-val.csv"
-test_csv = "all-test.csv"
+train_csv = "MLBS-train.csv"
+val_csv = "MLBS-val.csv"
+test_csv = "MLBS-test.csv"
 
-#import pdb; pdb.set_trace()
-# read in all *.csv files
+
+# read in all TEAK csv files
 train_df_list = []
-train_list = glob(join(train_dir, "*-train.csv"))
-
-# remove all-train.csv if it's in list
-to_remove = join(train_dir, "all-train.csv")
-if (to_remove in train_list):
-   train_list.remove(to_remove)
-
+train_list = glob(join(train_dir, "2018_MLBS_*.csv"))
 for f in train_list:
    train_df_list.append(pd.read_csv(f))
 
 
-train_df  = pd.concat(train_df_list)
+train_df_all = pd.concat(train_df_list)
 
-val_df_list = []
-val_list = glob(join(train_dir, "*-val.csv"))
+#train_df, val_df = train_test_split(train_df_all, test_size=0.1667, random_state=42)
 
-# remove all-val.csv if it's in list
-to_remove = join(train_dir, "all-val.csv")
-if (to_remove in val_list):
-   val_list.remove(to_remove)
-
-for f in val_list:
-   val_df_list.append(pd.read_csv(f))
+# to create validation set need to separate instances by image so all images are fully annotated
+img_groups = train_df_all.groupby("image_path")
+group_names = train_df_all['image_path'].unique()
+np.random.shuffle(group_names)
+val_df = train_df_all[train_df_all['image_path'].isin(group_names[:7])]
+train_df = train_df_all[train_df_all['image_path'].isin(group_names[7:])]
 
 
-val_df  = pd.concat(val_df_list)
-
-
-
-eval_list = glob(join(eval_dir, "*-test.csv"))
-
-# remove test-eval.csv if it's in list
-to_remove = join(eval_dir, "all-test.csv")
-if (to_remove in eval_list):
-   eval_list.remove(to_remove)      
+eval_list = glob(join(eval_dir, "MLBS_*.csv"))
 
 eval_df_list = []
 for f in eval_list:
@@ -74,7 +60,7 @@ test_df  = pd.concat(eval_df_list)
 print("\n\n\n")
 print("Train dataset: {} instances".format(train_df.shape[0]))
 print("Val dataset:   {} instances".format(val_df.shape[0]))
-print("Test dataset:  {} instances".format(test_df.shape[0]))
+print("Test dataset:  {} instances".format(test_df.shape[0])) 
 
 print("\n\n\n")
 print("Saving files")

@@ -5,7 +5,7 @@ import numpy as np
 from os.path import join
 from os.path import isdir
 from glob import glob
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 import argparse
 
 
@@ -14,6 +14,7 @@ parser.add_argument('--tr', type=str, required=True, help='training directory')
 parser.add_argument('--ev', type=str, required=True, help='evaluation directory')
 args = parser.parse_args()
 
+np.random.seed(42)
 
 # evaluation3 and training3 have no chm data included
 # evaluation4 and training4 have chm data included
@@ -30,8 +31,15 @@ val_csv = "NIWO-val.csv"
 test_csv = "NIWO-test.csv"
 
 train_df_all = pd.read_csv(join(train_dir, "2018_NIWO_2_450000_4426000_image_crop.csv"))
+#train_df, val_df = train_test_split(train_df_all, test_size=0.1667, random_state=42)
 
-train_df, val_df = train_test_split(train_df_all, test_size=0.1667, random_state=42)
+# to create validation set need to separate instances by image so all images are fully annotated
+img_groups = train_df_all.groupby("image_path")
+group_names = train_df_all['image_path'].unique()
+np.random.shuffle(group_names)
+
+val_df = train_df_all[train_df_all['image_path'].isin(group_names[:10])]
+train_df = train_df_all[train_df_all['image_path'].isin(group_names[10:])]
 
 eval_list = glob(join(eval_dir, "NIWO_*.csv"))
 
@@ -56,3 +64,4 @@ val_df.to_csv(join(train_dir, val_csv), header=True, index=False)
 
 print("   {}".format(join(eval_dir, test_csv)))
 test_df.to_csv(join(eval_dir, test_csv), header=True, index=False)
+
