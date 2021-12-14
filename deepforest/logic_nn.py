@@ -47,7 +47,7 @@ class LogicNN(object):
             expon_all = expon_all + expon
 
         # truncate to avoid over-/under-flow
-        expon_all = torch.maximum(torch.minimum(expon_all, torch.tensor(1*0.18232)), torch.tensor(1*-0.22314))
+        expon_all = torch.maximum(torch.minimum(expon_all, torch.tensor(1*0.019802)), torch.tensor(1*-0.02020))
         #expon_all = torch.maximum(torch.minimum(expon_all, torch.tensor(60.)), torch.tensor(-60.))
 
         return torch.exp(expon_all)

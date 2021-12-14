@@ -334,9 +334,9 @@ class deepforest(pl.LightningModule):
         num_comp = 0
         for img, img_dict in zip(images, preds):
             # generate special features
-            #eng_fea = self.has_competition(images, preds)
+            eng_fea = self.has_competition(images, preds)
             # ignore competition feature for now
-            eng_fea = list(range(preds[0]['boxes'].shape[0]))
+            #eng_fea = list(range(preds[0]['boxes'].shape[0]))
             q_y_pred = self.logic_nn.regress(preds[0]['boxes'], images, [eng_fea]).to(self.device)
 
         

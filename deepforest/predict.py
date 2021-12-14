@@ -80,8 +80,8 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
         ##############################################################################
         # my addition; replace student output with teacher output
         if (len(prediction[0]['scores']) > 0):
-            #eng_fea = m_obj.has_competition(image, prediction)
-            eng_fea = list(range(prediction[0]['boxes'].shape[0]))
+            eng_fea = m_obj.has_competition(image, prediction)
+            #eng_fea = list(range(prediction[0]['boxes'].shape[0]))
             q_y_pred = m_obj.logic_nn.regress(prediction[0]['boxes'], image, [eng_fea]).to(m_obj.device)
             prediction[0]['boxes'] = q_y_pred.float()
         ##############################################################################

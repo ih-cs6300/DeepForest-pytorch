@@ -19,17 +19,17 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_competition(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1]  # default 0.1
-pi_params = [0.95, 0.40]
+pi_params = [0.95, 0.50]
 batch_size = 1
-C = 1 # default 9
+C = 1
 
 # directory with image and annotation data
-train_dir = "/blue/daisyw/iharmon1/data/training3_bak"
-eval_dir = "/blue/daisyw/iharmon1/data/evaluation3_bak"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "NIWO-train.csv")
-val_csv = os.path.join(train_dir, "NIWO-val.csv")
-test_csv = os.path.join(eval_dir, "NIWO-test.csv")
+train_csv = os.path.join(train_dir, "TEAK-train.csv")
+val_csv = os.path.join(train_dir, "TEAK-val.csv")
+test_csv = os.path.join(eval_dir, "TEAK-test.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -41,7 +41,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46 # default 0.4
-m.config["train"]['epochs'] = 7
+m.config["train"]['epochs'] = 5
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57
@@ -51,7 +51,7 @@ m.config["batch_size"] = batch_size
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
 training_data = m.train_dataloader()
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 3)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 1)
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
 
@@ -82,7 +82,7 @@ file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f
 for f in file_list[:34]:
    comet.experiment.log_image('./pred_result2/' + f)
 
-comet.experiment.add_tags(["big_ds", "reg-wei"])
+comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower(), "reg"])
 comet.experiment.log_others(results)
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)

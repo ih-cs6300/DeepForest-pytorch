@@ -186,8 +186,8 @@ class FOL_competition(FOL):
         
         X = X.to(self.device)
         # assume these are optimal values for height and width
-        optim_w = 19.
-        optim_h = 20.
+        optim_w = 46.
+        optim_h = 46.
 
         #if (X.shape[0] > 0):
         #   import pdb; pdb.set_trace()
@@ -202,8 +202,8 @@ class FOL_competition(FOL):
         diff_y = w * (optim_h * torch.ones([X.shape[0], 1]).to(self.device) - height)
        
 
-        diff_x = torch.where((diff_x >= (optim_w - 40.54 * 1.)) & (diff_x <= (optim_w - 2.6 * 1.)), torch.tensor([0.]).to(self.device), diff_x)
-        diff_y = torch.where((diff_y >= (optim_h - 41. * 1.)) & (diff_y <= (optim_h - 2.99 * 1.)), torch.tensor([0.]).to(self.device), diff_y)
+        diff_x = torch.where((diff_x >= (optim_w - 93.973 * 1.)) & (diff_x <= (optim_w - 6.147 * 1.)), torch.tensor([0.]).to(self.device), diff_x)
+        diff_y = torch.where((diff_y >= (optim_h - 94.517 * 1.)) & (diff_y <= (optim_h - 6.415 * 1.)), torch.tensor([0.]).to(self.device), diff_y)
 
         # create one matrix with two columns by concatenating diff_x and diff_y
         temp = torch.cat([diff_x, diff_y], dim=1)
