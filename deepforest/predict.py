@@ -80,7 +80,7 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
         ##############################################################################
         # my addition; replace student output with teacher output
         if (len(prediction[0]['scores']) > 0):
-            eng_fea = m_obj.bbox_2big(image, prediction)
+            eng_fea = m_obj.is_green([image[0]], prediction)
             q_y_pred = m_obj.logic_nn.predict(prediction[0]['scores'], image, [eng_fea]).to(m_obj.device)
             prediction[0]['scores'] = q_y_pred.float()
         ##############################################################################
