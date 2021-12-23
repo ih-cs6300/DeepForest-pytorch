@@ -270,10 +270,14 @@ class FOL_bbox_2big(FOL):
         return log_distr
 
     def log_distribution(self, w, X=None, F=None):
-        f_1 = F.reshape(-1, 1)
+        # F[0] is mask F[1] is tensor of height function output
+        mask = F[0]
+        mask = torch.tile(mask, (1, 2)) 
+        F = F[1]
+        f_1 = F.reshape(-1, 1) 
         f_0 = 1. - f_1
         f = torch.cat([f_0, f_1], 1)
-        f = w * f
+        f = w * mask * f
         return f
 
 

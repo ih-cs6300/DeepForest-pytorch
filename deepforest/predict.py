@@ -11,6 +11,7 @@ from deepforest import preprocess
 from deepforest import visualize
 from skimage import io
 import cv2
+from deepforest.evaluate import evaluate_image
 
 
 def predict_image(model, image, return_plot, device, iou_threshold=0.1):
@@ -78,10 +79,32 @@ def predict_file(m_obj, model, csv_file, root_dir, savedir, device, iou_threshol
         prediction = model(image)
         ##############################################################################
         # my addition; replace student output with teacher output
-        #import pdb; pdb.set_trace()
         prediction = m_obj.get_heights([chm], prediction)
         if (len(prediction[0]['scores']) > 0):
             eng_fea = m_obj.bbox_2big(image, prediction)
+
+            ##########
+            # y+ stuff
+            image_path = path
+            pred_dict = prediction[0]
+
+            ground_df = input_csv[input_csv.image_path == image_path]
+
+            predictions = pd.DataFrame(pred_dict['boxes'].cpu().detach().numpy(), columns=["xmin", "ymin", "xmax", "ymax"]).astype(float)
+            predictions['image_path'] = [image_path] * predictions.shape[0]
+            predictions['label'] = pred_dict['labels'].cpu().detach()
+
+            #evaluate_image(predictions, ground_df, show_plot, root_dir, savedir)
+            res_df = evaluate_image(predictions, ground_df, False, m_obj.config['train']['root_dir'], None)
+            matches_df = res_df[res_df.IoU >= 0.50]
+
+            mask = np.zeros([len(predictions), 1], dtype=np.float32)
+            mask[matches_df['prediction_id'].unique().astype(int)] = 1
+            mask = torch.from_numpy(mask)
+            mask = mask.to(m_obj.device)
+
+            eng_fea = (mask, eng_fea)
+            ###########
             q_y_pred = m_obj.logic_nn.predict(prediction[0]['scores'], image, [eng_fea]).to(m_obj.device)
             prediction[0]['scores'] = q_y_pred.float()
         ##############################################################################

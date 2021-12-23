@@ -22,6 +22,7 @@ from deepforest import evaluate as evaluate_iou
 from deepforest.logic_nn import LogicNN
 import comet
 from itertools import combinations
+from deepforest.evaluate import evaluate_image
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
@@ -333,6 +334,40 @@ class deepforest(pl.LightningModule):
         for img, img_dict in zip(images, preds):
             # generate special features
             eng_fea = self.bbox_2big(images, preds)
+
+        #################################################################################################################################
+        # code to only target true positives
+        image_path = batch[0][0]
+        image = batch[1][0]
+        ann_dict = batch[2][0]
+        pred_dict = preds[0]
+
+        ground_df = pd.DataFrame(ann_dict['boxes'].cpu().detach().numpy(), columns=["xmin", "ymin", "xmax", "ymax"]).astype(float)
+
+        ground_df['image_path'] = [image_path] * ground_df.shape[0]
+        ground_df['label'] = ann_dict['labels'].cpu().detach()
+
+        predictions = pd.DataFrame(pred_dict['boxes'].cpu().detach().numpy(), columns=["xmin", "ymin", "xmax", "ymax"]).astype(float)
+        predictions['image_path'] = [image_path] * predictions.shape[0]
+        predictions['label'] = pred_dict['labels'].cpu().detach()
+
+        if (self.global_step > self.config['train']["beg_incr_pi"]):
+           #evaluate_image(predictions, ground_df, show_plot, root_dir, savedir)
+           res_df = evaluate_image(predictions, ground_df, False, self.config['train']['root_dir'], None)
+           matches_df = res_df[res_df.IoU >= 0.50]
+
+           mask = np.zeros([len(predictions), 1], dtype=np.float32)
+           mask[matches_df['prediction_id'].unique().astype(int)] = 1
+           mask = torch.from_numpy(mask)
+           mask = mask.to(self.device)
+
+           eng_fea = (mask, eng_fea)
+        else:
+           mask = np.zeros([len(predictions), 1], dtype=np.float32)
+           mask = torch.from_numpy(mask)
+           mask = mask.to(self.device)
+           eng_fea = (mask, eng_fea)
+        #################################################################################################################################
 
         if (len(preds[0]['scores']) > 0):
             q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)

@@ -19,7 +19,7 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]
 rule_lambdas = [1e2]  # default 0.1
-pi_params = [0.80, 0.5]
+pi_params = [0.79, 0.5]
 batch_size = 1
 C = 0.01 # default 9
 
@@ -51,7 +51,7 @@ m.config["batch_size"] = batch_size
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
 training_data = m.train_dataloader()
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 2)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 3)
 
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
