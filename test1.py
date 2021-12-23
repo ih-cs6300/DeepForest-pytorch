@@ -77,14 +77,17 @@ except OSError as error:
    pass
 
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir= save_dir)
-
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
 for f in file_list[:34]:
    comet.experiment.log_image('./pred_result2/' + f)
 
 comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower(), "chm"])
-comet.experiment.log_others(results)
+comet.experiment.log_others({'box_precision': results['box_precision'], 
+			     'box_recall': results['box_recall'], 
+                             'class_precision': results['class_recall']['precision'].item(), 
+                             'class_recall': results['class_recall']['recall'].item(), 
+                             'size': results['class_recall']['size'].item()})
 comet.experiment.log_parameter('pi_params', pi_params)
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
@@ -96,7 +99,7 @@ comet.experiment.log_table('./pred_result2/predictions.csv')
 comet.experiment.log_table('./pred_result2/matches.csv')
 comet.experiment.log_code(file_name='deepforest/main.py')
 comet.experiment.log_code(file_name='deepforest/fol.py')
-comet.experiment.log_code(file_name='logic_nn.py')
+comet.experiment.log_code(file_name='deepforest/logic_nn.py')
 comet.experiment.log_code(file_name='deepforest/predict.py')
 comet.experiment.log_code(file_name='deepforest/dataset.py')
 comet.experiment.log_code(file_name='deepforest/preprocess.py')

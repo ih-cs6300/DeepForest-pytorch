@@ -270,10 +270,9 @@ class FOL_bbox_2big(FOL):
         return log_distr
 
     def log_distribution(self, w, X=None, F=None):
-        #import pdb; pdb.set_trace()
         f_1 = F.reshape(-1, 1)
         f_0 = 1. - f_1
-        f = torch.cat([f_0, f_1], 1).to(self.device)
+        f = torch.cat([f_0, f_1], 1)
         f = w * f
         return f
 

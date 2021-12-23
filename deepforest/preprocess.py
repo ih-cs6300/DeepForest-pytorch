@@ -32,7 +32,9 @@ def preprocess_image(image):
 
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
     image = image / 255
-    chm = chm / 35
+    #chm = chm / 35
+    chm = torch.from_numpy(chm)
+    chm = chm.type(torch.float32)
 
     return image, chm
 
