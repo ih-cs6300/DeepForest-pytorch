@@ -325,44 +325,32 @@ class deepforest(pl.LightningModule):
         # one dictionary per image
         # each dictionary has keys 'boxes', 'scores', and 'labels'
         # each value is a tensor
-        preds = self.model.forward(images)          # targets must be included in training mode
-        #self.get_heights(images, preds)             # heights added to dictionary; key = 'hts'
+        preds = self.model.forward(images)           # targets must be included in training mode
+        self.get_heights(chm, preds)              # heights added to dictionary; key = 'hts'
 
         # get special features
         eng_fea = []
-        #for img, img_dict in zip(images, preds):
+        for img, img_dict in zip(images, preds):
             # generate special features
-            #eng_fea = self.has_competition(images, preds)
+            eng_fea = self.bbox_2big(images, preds)
 
-            # ignore competition feature for now
-            #eng_fea = list(range(preds[0]['boxes'].shape[0]))
-            
-            #if preds[0]['boxes'].shape[0] > 0:
-            #   import pdb; pdb.set_trace()
+        if (len(preds[0]['scores']) > 0):
+            q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)
+            huLoss = F.binary_cross_entropy(torch.tensor(1.) - preds[0]['scores'].float(), q_y_pred.float())
+        else:
+            huLoss = torch.tensor(0., requires_grad=True).to(self.device)
 
-            #q_y_pred = self.logic_nn.regress(preds[0], images, [eng_fea]).to(self.device)
-            #q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [preds[0]['hts']])
+        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) + pi * (huLoss + loss_dict['bbox_regression'])
 
-        
-            #if (preds[0]['boxes'].shape[0] == 0):
-            #    huLoss = huLoss + torch.tensor([0.], requires_grad=True).to(self.device)
-            #else:
-            #    #huLoss = huLoss + F.l1_loss(preds[0]['boxes'], q_y_pred)
-            #    huLoss = huLoss + F.binary_cross_entropy(preds[0]['scores'].float(), q_y_pred.float())
-                #huLoss = huLoss + F.mse_loss(preds[0]['boxes'], q_y_pred)
-
-        #import pdb; pdb.set_trace()
-        losses = (1 - pi) * sum([loss for loss in loss_dict.values()]) #+ (pi * huLoss)
-
-
-        num_preds = sum([len(preds[x]['labels']) for x in range(len(images))])
         self.log('pi', pi, prog_bar=True, on_step=True)
-        self.log('num_preds', num_preds, prog_bar=True, on_step=True)
-        #self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
-        #self.log('hu', huLoss, prog_bar=True, on_step=True)
+        self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
+        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        self.log('hu_loss', huLoss, prog_bar=True, on_step=True)
+
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
-            #comet.experiment.log_metric("huLoss", huLoss)
+            comet.experiment.log_metric("hu_loss", huLoss)
+
         return losses
 
     def validation_step1(self, batch, batch_idx):
@@ -502,20 +490,19 @@ class deepforest(pl.LightningModule):
 
         return res
 
-    def get_heights(self, images, preds): 
+    def get_heights(self, chms, preds): 
         for idx in range(len(preds)):
             ht_list = []
-            img = images[idx]
+            chm = chms[idx]
             boxes = torch.round(preds[idx]['boxes'])
             boxes = boxes.detach().cpu().numpy()
             boxes = boxes.astype(np.int)   
 
             for row in range(boxes.shape[0]):
-                if torch.numel(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]]) > 0:
-                   ht = torch.mean(img[3, boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
+                if torch.numel(chm) > 0:
+                   ht = torch.max(chm[boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
                 else:
                    ht = 0.
-                assert (ht >=0) and (ht <= 1.), "Print height {}m out of range".format(ht)
                 ht_list.append(ht)
 
             hts = torch.tensor(ht_list, requires_grad=True).reshape(-1, 1).to(self.device)   
@@ -549,3 +536,26 @@ class deepforest(pl.LightningModule):
         res = res.view(1, 4)
 
         return res
+
+    def bbox_2big(self, images, preds):
+        """
+        Description: Find predictions where the bounding box is infeasibily large
+        images - list of images in batch
+        preds - list of prediction dictionaries withkeys boxes, scores, and labels
+        """   
+        optim_area = 0.8532 * (torch.pow(preds[0]['hts'], 1.21493))
+        #optim_area = 1 * (torch.pow(preds[0]['hts'], 0))
+        optim_area = torch.divide(optim_area, 0.01)
+
+        sigma = torch.nn.Sigmoid()
+
+        # calculate the area of each bounding box
+        x_len = preds[0]['boxes'][:, 2] - preds[0]['boxes'][:, 0]
+        y_len = preds[0]['boxes'][:, 3] - preds[0]['boxes'][:, 1]
+        bb_area = x_len * y_len
+
+        #return the index of bboxes with areas greater than X
+        res = sigma(1e-6 * (optim_area.flatten() - bb_area))
+        return res
+
+

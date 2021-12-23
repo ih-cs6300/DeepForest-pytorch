@@ -16,6 +16,7 @@ import os
 import pandas as pd
 import cv2
 import numpy as np
+import torch
 from skimage import io
 from torch.utils.data import Dataset
 from deepforest import transforms as T
@@ -75,7 +76,9 @@ class TreeDataset(Dataset):
         #cv2.imwrite(img_name.split(".")[0] + "-masked" + ".png", image)
  
         image = image / 255
-        chm = chm / 35
+        chm = torch.from_numpy(chm)
+        chm = chm.type(torch.float32)
+        #chm = chm / 35
         
         try:
             check_image(image)
@@ -86,8 +89,7 @@ class TreeDataset(Dataset):
         image_annotations = self.annotations[self.annotations.image_path ==
                                              self.image_names[idx]]
         targets = {}
-        targets["boxes"] = image_annotations[["xmin", "ymin", "xmax",
-                                              "ymax"]].values.astype(float)
+        targets["boxes"] = image_annotations[["xmin", "ymin", "xmax", "ymax"]].values.astype(float)
 
         # Labels need to be encoded? 0 or 1 indexed?, ALl tree for the moment.
         targets["labels"] = image_annotations.label.apply(
