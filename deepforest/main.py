@@ -578,7 +578,7 @@ class deepforest(pl.LightningModule):
         images - list of images in batch
         preds - list of prediction dictionaries withkeys boxes, scores, and labels
         """   
-        optim_area = 0.8532 * (torch.pow(preds[0]['hts'], 1.21493))
+        optim_area = 0.33549 * (torch.pow(preds[0]['hts'], 1.40645))
         #optim_area = 1 * (torch.pow(preds[0]['hts'], 0))
         optim_area = torch.divide(optim_area, 0.01)
 
@@ -590,7 +590,7 @@ class deepforest(pl.LightningModule):
         bb_area = x_len * y_len
 
         #return the index of bboxes with areas greater than X
-        res = sigma(1e-6 * (optim_area.flatten() - bb_area))
+        res = sigma(0.5 * (optim_area.flatten() - bb_area))
         return res
 
 

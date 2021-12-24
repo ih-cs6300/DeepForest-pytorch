@@ -18,18 +18,18 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]
-rule_lambdas = [1e2]  # default 0.1
-pi_params = [0.79, 0.5]
+rule_lambdas = [1e2] 
+pi_params = [0.95, 0.90] 
 batch_size = 1
-C = 0.01 # default 9
+C = 9 # default 9
 
 # directory with image and annotation data
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
-train_csv = os.path.join(train_dir, "TEAK-train.csv") 
-val_csv = os.path.join(train_dir, "TEAK-val.csv")   
-test_csv = os.path.join(eval_dir, "TEAK-test.csv")
+train_csv = os.path.join(train_dir, "MLBS-train.csv") 
+val_csv = os.path.join(train_dir, "MLBS-val.csv")   
+test_csv = os.path.join(eval_dir, "MLBS-test.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -51,7 +51,7 @@ m.config["batch_size"] = batch_size
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
 training_data = m.train_dataloader()
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 3)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 2) 
 
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
