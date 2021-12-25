@@ -19,17 +19,17 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]
 rule_lambdas = [1e2]  # default 0.1
-pi_params = [0.80, 0.5]
+pi_params = [0.95, 0.90]
 batch_size = 1
-C = 0.01 # default 9
+C = 9
 
 # directory with image and annotation data
 train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
 eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
-train_csv = os.path.join(train_dir, "TEAK-train.csv") 
-val_csv = os.path.join(train_dir, "TEAK-val.csv")   
-test_csv = os.path.join(eval_dir, "TEAK-test.csv")
+train_csv = os.path.join(train_dir, "NIWO-train.csv") 
+val_csv = os.path.join(train_dir, "NIWO-val.csv")   
+test_csv = os.path.join(eval_dir, "NIWO-test.csv")
 
 """## Training & Evaluating Using GPU"""
 
@@ -41,7 +41,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46 # default 0.4
-m.config["train"]['epochs'] = 5
+m.config["train"]['epochs'] = 7
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57
@@ -51,7 +51,7 @@ m.config["batch_size"] = batch_size
 print("Training csv: {}".format(m.config["train"]["csv_file"]))
 
 training_data = m.train_dataloader()
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 2)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 3)
 
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
