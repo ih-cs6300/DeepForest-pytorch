@@ -19,12 +19,12 @@ n_classes = 1
 batch_size = 1
 
 # directory with image and annotation data
-train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
-eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3_bak"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3_bak"
 
-train_csv = os.path.join(train_dir, "TEAK-train.csv")  
-val_csv = os.path.join(train_dir, "TEAK-val.csv")    
-test_csv = os.path.join(eval_dir, "TEAK-test.csv") 
+train_csv = os.path.join(train_dir, "SJER-train.csv")  
+val_csv = os.path.join(train_dir, "SJER-val.csv")    
+test_csv = os.path.join(eval_dir, "SJER-test.csv") 
 
 """## Training & Evaluating Using GPU"""
 
@@ -76,7 +76,11 @@ for f in file_list[:34]:
    comet.experiment.log_image('./pred_result2/' + f)
 
 comet.experiment.add_tags([os.path.basename(test_csv).split('-')[0].lower(), "baseline"])
-comet.experiment.log_others(results)
+comet.experiment.log_others({'box_precision': results['box_precision'], 
+			     'box_recall': results['box_recall'], 
+                             'class_precision': results['class_recall']['precision'].item(), 
+                             'class_recall': results['class_recall']['recall'].item(), 
+                             'size': results['class_recall']['size'].item()})
 comet.experiment.log_parameter('m.config', m.config)
 comet.experiment.log_parameter("m.config['train']", m.config['train'])
 
@@ -88,3 +92,6 @@ comet.experiment.log_table('./pred_result2/predictions.csv')
 comet.experiment.log_table('./pred_result2/matches.csv')
 comet.experiment.log_code(file_name='./test1.py')
 comet.experiment.log_code(file_name='deepforest/main.py')
+comet.experiment.log_code(file_name='deepforest/fol.py')
+comet.experiment.log_code(file_name='deepforest/logic_nn.py')
+comet.experiment.log_code(file_name='deepforest/predict.py')
