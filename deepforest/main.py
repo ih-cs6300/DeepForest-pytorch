@@ -353,7 +353,7 @@ class deepforest(pl.LightningModule):
         predictions['image_path'] = [image_path] * predictions.shape[0]
         predictions['label'] = pred_dict['labels'].cpu().detach()
 
-        if (self.global_step > self.config['train']["beg_incr_pi"]):
+        if (self.global_step > self.config['train']["beg_incr_pi"]) and (len(predictions['label']) > 0):
            #evaluate_image(predictions, ground_df, show_plot, root_dir, savedir)
            res_df = evaluate_image(predictions, ground_df, False, self.config['train']['root_dir'], None)
            matches_df = res_df[res_df.IoU >= 0.50]
@@ -569,5 +569,5 @@ class deepforest(pl.LightningModule):
         bb_area = x_len * y_len
 
         #return the index of bboxes with areas greater than X
-        res = sigma(0.5 * (2304 - bb_area))
+        res = sigma(0.5 * (5184 - bb_area))
         return res
