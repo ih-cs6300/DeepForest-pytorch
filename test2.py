@@ -20,9 +20,9 @@ np.random.seed(42)
 n_classes = 1
 rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
 rule_lambdas = [1e2]
-pi_params = [0.95, 0.5]  #0.9, 0
+pi_params = [0.95, 0.9]
 batch_size = 1
-C = 9  # 6
+C = 0.000125
 
 
 parser = argparse.ArgumentParser()
@@ -63,7 +63,7 @@ print("Training csv: {}".format(m.config["train"]["csv_file"]))
 training_data = m.train_dataloader()
 n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
-m.config["train"]["beg_incr_pi"] = round(len(training_data) * 5)
+m.config["train"]["beg_incr_pi"] = round(len(training_data) * 6)
 
 # create a pytorch lighting trainer used to training
 #checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
@@ -89,7 +89,7 @@ results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False,
 
 #######################################################################################################################################################################################################
 # log data to locally
-log_fname = "df_bbox_log.csv".format(args.site)
+log_fname = "df_niwo_bbox_ht_log.csv".format(args.site)
 if not (os.path.isfile(log_fname)):
    f = open(log_fname, "w")
    f.write("site,train,test,bbox_prec,bbox_rec,class_prec,class_rec\n")
