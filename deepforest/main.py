@@ -351,7 +351,7 @@ class deepforest(pl.LightningModule):
         predictions['image_path'] = [image_path] * predictions.shape[0]
         predictions['label'] = pred_dict['labels'].cpu().detach()
 
-        if (self.global_step > self.config['train']["beg_incr_pi"]):
+        if (self.global_step > self.config['train']["beg_incr_pi"]) and (len(predictions['label']) > 0):
            #evaluate_image(predictions, ground_df, show_plot, root_dir, savedir)
            res_df = evaluate_image(predictions, ground_df, False, self.config['train']['root_dir'], None)
            matches_df = res_df[res_df.IoU >= 0.50]
@@ -534,7 +534,8 @@ class deepforest(pl.LightningModule):
             boxes = boxes.astype(np.int)   
 
             for row in range(boxes.shape[0]):
-                if torch.numel(chm) > 0:
+                # make sure chm isn't empty and the dimensions of the box are greater than 0
+                if (torch.numel(chm)) > 0 and ((boxes[row][3] - boxes[row][1]) > 0) and ((boxes[row][2] - boxes[row][0]) > 0):
                    ht = torch.max(chm[boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
                 else:
                    ht = 0.
@@ -578,7 +579,7 @@ class deepforest(pl.LightningModule):
         images - list of images in batch
         preds - list of prediction dictionaries withkeys boxes, scores, and labels
         """   
-        optim_area = 0.33549 * (torch.pow(preds[0]['hts'], 1.40645))
+        optim_area = 3.32067 * (torch.pow(preds[0]['hts'], 1.22315))
         #optim_area = 1 * (torch.pow(preds[0]['hts'], 0))
         optim_area = torch.divide(optim_area, 0.01)
 
