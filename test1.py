@@ -19,12 +19,12 @@ n_classes = 1
 batch_size = 1
 
 # directory with image and annotation data
-train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3_bak"
-eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3_bak"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
 
-train_csv = os.path.join(train_dir, "SJER-train.csv")  
-val_csv = os.path.join(train_dir, "SJER-val.csv")    
-test_csv = os.path.join(eval_dir, "SJER-test.csv") 
+train_csv = os.path.join(train_dir, "TEAK-train.csv")  
+val_csv = os.path.join(train_dir, "TEAK-val.csv")    
+test_csv = os.path.join(eval_dir, "TEAK-test.csv") 
 
 """## Training & Evaluating Using GPU"""
 
@@ -69,6 +69,10 @@ except OSError as error:
    pass
 
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir = save_dir)
+print("bbox prec: {}".format(results['box_precision']))
+print("bbox rec: {}".format(results['box_recall']))
+print("class prec: {}".format(results['class_recall']['precision'].item()))
+print("class rec: {}".format(results['class_recall']['recall'].item()))
 
 file_list = [f for f in os.listdir(save_dir) if (f.split(".")[1] == 'png') or (f.split(".")[1] =='tif')]
 
