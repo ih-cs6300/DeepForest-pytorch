@@ -25,8 +25,8 @@ from sklearn.preprocessing import MinMaxScaler
 import cv2
 
 ann_dir = "/home/iharmon1/data/NeonTreeEvaluation/annotations"
-eval_dir = "./evaluation5"
-train_dir = "./training5"
+eval_dir = "./evaluation4"
+train_dir = "./training4"
 rgb_dir = "/home/iharmon1/data/NeonTreeEvaluation/evaluation/RGB"
 chm_dir = "/home/iharmon1/data/NeonTreeEvaluation/evaluation/CHM"
 
