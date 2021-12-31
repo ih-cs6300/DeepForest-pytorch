@@ -52,6 +52,7 @@ class TreeDataset(Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
         image = io.imread(img_name)
+        image = image[:, :, :3]
         image = image / 255
         
         try:
