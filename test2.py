@@ -34,7 +34,7 @@ train_dir = args.train_dir
 eval_dir = args.test_dir
 
 train_csv = os.path.join(train_dir, args.train_ann)
-val_csv = os.path.join(train_dir, "TEAK-val.csv")    
+val_csv = os.path.join(train_dir, "NA-val.csv")    
 test_csv = os.path.join(eval_dir, args.test_ann) 
 
 """## Training & Evaluating Using GPU"""

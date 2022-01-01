@@ -19,12 +19,12 @@ n_classes = 1
 batch_size = 1
 
 # directory with image and annotation data
-train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training4"
-eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation4"
+train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
+eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "TEAK-train.csv")  
-val_csv = os.path.join(train_dir, "TEAK-val.csv")    
-test_csv = os.path.join(eval_dir, "TEAK-test.csv") 
+train_csv = os.path.join(train_dir, "SJER-train.csv")  
+val_csv = os.path.join(train_dir, "SJER-val.csv")    
+test_csv = os.path.join(eval_dir, "SJER-test.csv") 
 
 """## Training & Evaluating Using GPU"""
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# example arg1 = "./training3/niwo_folds"
+# example: "./run_10_fold.sh training3/niwo_folds10 training3 niwo"
 folds=`ls $1/fold_?.csv`
 
 folds_dir=$1   # directory with foleds ex: "./training3/niwo_folds"
