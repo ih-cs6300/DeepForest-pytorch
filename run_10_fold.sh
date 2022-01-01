@@ -2,9 +2,9 @@
 # example arg1 = "./training3/niwo_folds"
 folds=`ls $1/fold_?.csv`
 
-folds_dir=$1
-train_dir="training4"
-site_name="teak"
+folds_dir=$1   # directory with foleds ex: "./training3/niwo_folds"
+train_dir=$2   # working directory     ex: "training3"
+site_name=$3   # site name             ex: "sjer"
 
 # remove anything that may have been leftover from previous run
 rm $1/temp-train.csv
@@ -26,7 +26,6 @@ do
    python3 test2.py --site ${site_name} --train_dir ${train_dir} --test_dir ${train_dir} --train_ann temp-train.csv --test_ann $(basename $entry)
    rm ./checkpoints/*
 
-   read junk
    rm $1/temp-train.csv
    rm $train_dir/temp-train.csv
    rm $train_dir/$(basename $entry)

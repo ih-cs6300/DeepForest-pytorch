@@ -34,7 +34,7 @@ train_dir = args.train_dir
 eval_dir = args.test_dir
 
 train_csv = os.path.join(train_dir, args.train_ann)
-val_csv = os.path.join(train_dir, "NIWO-val.csv")    
+val_csv = os.path.join(train_dir, "TEAK-val.csv")    
 test_csv = os.path.join(eval_dir, args.test_ann) 
 
 """## Training & Evaluating Using GPU"""
@@ -82,7 +82,7 @@ except OSError as error:
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir = save_dir)
 #######################################################################################################################################################################################################
 # log data to locally
-log_fname = "df_" + args.site + "_baseline_log.csv".format(args.site)
+log_fname = "df_baseline_log.csv".format(args.site)
 if not (os.path.isfile(log_fname)):
    f = open(log_fname, "w")
    f.write("site,train,test,bbox_prec,bbox_rec,class_prec,class_rec\n")

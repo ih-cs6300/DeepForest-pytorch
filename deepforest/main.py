@@ -295,7 +295,7 @@ class deepforest(pl.LightningModule):
 
         return losses
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step1(self, batch, batch_idx):
         """Train on a loaded dataset
 
         """
@@ -313,7 +313,7 @@ class deepforest(pl.LightningModule):
 
         return losses
 
-    def validation_end(self, outputs):
+    def validation_end1(self, outputs):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         comet_logs = {'val_loss': avg_loss}
 

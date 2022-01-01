@@ -1,4 +1,5 @@
 # make k-folds for cross validation
+# python3 make_folds.py --wdir training4 --sdir teak_folds10 --fname TEAK-train.csv --k 10 --fivex2cv 'False'
 
 import pandas as pd
 import numpy as np
