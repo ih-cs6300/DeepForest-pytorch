@@ -16,7 +16,7 @@ parser.add_argument('--wdir', type=str, required=True, help='working directory')
 parser.add_argument('--sdir', type=str, required=True, help='storage directory')
 parser.add_argument('--fname', type=str, required=True, help='name of file to split')
 parser.add_argument('--k', type=int, required=True, help='number of folds')
-parser.add_argument('--fivex2cv', type=bool, required=True, help='create folds for 5x2cv')
+parser.add_argument('--fivex2cv', choices=('True', 'False'), required=True, help='create folds for 5x2cv')
 args = parser.parse_args()
 
 np.random.seed(42)
@@ -25,7 +25,7 @@ np.random.seed(42)
 assert (isdir("./" + args.wdir)), "Directory {} doesn't exist".format(args.wdir)
 assert (isfile(join(args.wdir, args.fname))), "Directory {} doesn't exist".format(join(args.wdir, args.fname))
 
-if (args.fivex2cv == True):
+if (args.fivex2cv == 'True'):
     assert (args.k == 2), "Number of folds, {}, contradicts 5x2cv".format(args.k)
 
 print("\n\nReading {}...".format(args.fname))
@@ -58,7 +58,7 @@ else:
       if (len(glob(join(args.wdir, args.sdir, "*"))) > 0): 
          remove(join(args.wdir, args.sdir, "*"))
 
-if args.fivex2cv == False:
+if args.fivex2cv == 'False':
     # shuffle image names and split them into folds
     np.random.shuffle(group_names)
     fold_imgs = np.array_split(group_names, args.k)

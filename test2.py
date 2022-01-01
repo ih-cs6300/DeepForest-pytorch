@@ -47,7 +47,7 @@ m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46  # default 0.4
-m.config["train"]['epochs'] = 7
+m.config["train"]['epochs'] = 5
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
@@ -82,7 +82,7 @@ except OSError as error:
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir = save_dir)
 #######################################################################################################################################################################################################
 # log data to locally
-log_fname = "df_baseline_log.csv".format(args.site)
+log_fname = "df_" + args.site + "_baseline_log.csv".format(args.site)
 if not (os.path.isfile(log_fname)):
    f = open(log_fname, "w")
    f.write("site,train,test,bbox_prec,bbox_rec,class_prec,class_rec\n")
