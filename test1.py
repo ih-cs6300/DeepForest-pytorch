@@ -1,5 +1,7 @@
 # load modules
 import comet
+import my_parse as pars
+import my_log as mlg
 import os
 import time
 import numpy as np
@@ -14,29 +16,31 @@ from deepforest import callbacks
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-np.random.seed(42)
 n_classes = 1
 batch_size = 1
 
-# directory with image and annotation data
-train_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/training3"
-eval_dir = "/blue/daisyw/iharmon1/data/DeepForest-pytorch/evaluation3"
 
-train_csv = os.path.join(train_dir, "SJER-train.csv")  
-val_csv = os.path.join(train_dir, "SJER-val.csv")    
-test_csv = os.path.join(eval_dir, "SJER-test.csv") 
+# directory with image and annotation data
+train_dir = pars.args.train_dir
+eval_dir = pars.args.test_dir
+
+train_csv = os.path.join(train_dir, pars.args.train_ann)  
+val_csv = os.path.join(train_dir, pars.args.val_ann)    
+test_csv = os.path.join(eval_dir, pars.args.test_ann) 
 
 """## Training & Evaluating Using GPU"""
 
 # initialize the model and change the corresponding config file
-torch.manual_seed(42)
-torch.cuda.manual_seed_all(42)
+torch.manual_seed(pars.args.seed)
+torch.cuda.manual_seed_all(pars.args.seed)
+np.random.seed(pars.args.seed)
+
 m = main.deepforest()
 m.config['gpus'] = '-1' #move to GPU and use all the GPU resources
 m.config["train"]["csv_file"] = train_csv
 m.config["train"]["root_dir"] = train_dir
 m.config["score_thresh"] = 0.46  # default 0.4
-m.config["train"]['epochs'] = 5
+m.config["train"]['epochs'] = pars.args.epochs
 m.config["validation"]["csv_file"] = val_csv
 m.config["validation"]["root_dir"] = train_dir
 m.config["nms_thresh"] = 0.57  # default 0.05
@@ -69,6 +73,8 @@ except OSError as error:
    pass
 
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir = save_dir)
+csv_wr_obj = mlg.Writer(pars.args.log, ["site", "seed", "epochs", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec"])
+csv_wr_obj.write_data([pars.args.site, str(pars.args.seed), str(pars.args.epochs), train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item()])
 print("bbox prec: {}".format(results['box_precision']))
 print("bbox rec: {}".format(results['box_recall']))
 print("class prec: {}".format(results['class_recall']['precision'].item()))
