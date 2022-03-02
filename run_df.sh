@@ -1,5 +1,5 @@
 #!/bin/bash
-# example: "./run_df.sh 10 seeds.txt 5 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_baseline_niwo.csv"
+# example: "./run_df.sh 10 seeds.txt 5 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_baseline_niwo.csv False"
 
 num_iter=$1
 seed_file=$2   # file with seeds in it  ex: "./seeds.txt"
@@ -10,14 +10,15 @@ tr_ann=$6      # training annotations   ex: "niwo-train.csv"
 va_ann=$7      # validation annotations ex: "niwo-val.csv
 te_ann=$8      # testing annonations    ex: "niwo-test.csv"
 site_name=$9   # site name              ex: "niwo"
-log_file=${10}   # name of logging file   ex: "df_baseline_niwo.csv"
+log_file=${10} # name of logging file   ex: "df_baseline_niwo.csv"
+use_chm=${11} # use chm                ex: "True"
 
 for (( idx=1; idx<=$num_iter; idx++ ))
 do
    echo "Bash loop $idx"
    rm ./pred_result2/*
    seed=`awk "FNR == $idx" ${seed_file}`
-   python3 test1.py --seed ${seed} --site ${site_name} --train_dir ${tr_dir} --test_dir ${te_dir} --train_ann ${tr_ann} --val_ann ${va_ann} --test_ann ${te_ann} --epochs ${epochs} --log ${log_file}
+   python3 test1.py --seed ${seed} --site ${site_name} --train_dir ${tr_dir} --test_dir ${te_dir} --train_ann ${tr_ann} --val_ann ${va_ann} --test_ann ${te_ann} --epochs ${epochs} --log ${log_file} --chm ${use_chm}
    rm core.*
    echo ""
 done

@@ -14,6 +14,10 @@ https://colab.research.google.com/github/benihime91/pytorch_retinanet/blob/maste
 """
 import os
 import pandas as pd
+import cv2
+import numpy as np
+import torch
+import my_parse as pars
 from skimage import io
 from torch.utils.data import Dataset
 from deepforest import transforms as T
@@ -27,7 +31,16 @@ def get_transform(augment):
         transforms.append(T.RandomHorizontalFlip(0.5))
     return T.Compose(transforms)
 
-
+def make_chm_mask(chm):
+    _, mask = cv2.threshold(chm, 2, 1, cv2.THRESH_BINARY)  # x < 2 ==> 0; x > 2 ==> 1
+    kernel = np.ones((7, 7),np.uint8)
+    mask_morph = cv2.dilate(mask, kernel, iterations=1)
+    return mask_morph   
+ 
+def apply_chm_transform(image, mask):
+    masked = np.transpose(image, (2, 0, 1)) * mask
+    image = np.transpose(masked, (1, 2, 0))
+    return masked, image
 
 class TreeDataset(Dataset):
 
@@ -52,7 +65,17 @@ class TreeDataset(Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_names[idx])
         image = io.imread(img_name)
-        image = image[:, :, :3]
+       
+        if (pars.args.chm.lower() == 'true'):
+            chm = image[:, :, 3]
+            image = image[:, :, :3]
+            mask = make_chm_mask(chm)
+            masked, image = apply_chm_transform(image, mask)
+            chm = torch.from_numpy(chm)
+            chm = chm.type(torch.float32)
+        else:
+            image = image[:, :, :3]
+
         image = image / 255
         
         try:

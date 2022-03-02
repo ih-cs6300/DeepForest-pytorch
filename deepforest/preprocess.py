@@ -11,10 +11,25 @@ import pandas as pd
 import slidingwindow
 from PIL import Image
 import torch
-
+import my_parse as pars
+import rasterio
+import cv2
+from deepforest.dataset import make_chm_mask
+from deepforest.dataset import apply_chm_transform
 
 def preprocess_image(image):
     """Preprocess a single RGB numpy array as a prediction from channels last, to channels first"""
+    # image format [batch x channels x ht x wd]
+    if (pars.args.chm.lower() == 'true'):
+        chm = image[:, :, 3]
+        image = image[:, :, :3]
+        mask = make_chm_mask(chm)
+        masked, image = apply_chm_transform(image, mask)
+        chm = torch.from_numpy(chm)
+        chm = chm.type(torch.float32)
+    else:
+        image = image[:, :, :3]                 # allows use of 4 channel data without mask being set
+
     image = torch.tensor(image.copy()).permute(2, 0, 1).unsqueeze(0).float()
     image = image / 255
 
@@ -131,10 +146,14 @@ def save_crop(base_dir, image_name, index, crop):
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
 
-    im = Image.fromarray(crop)
     image_basename = os.path.splitext(image_name)[0]
     filename = "{}/{}_{}.png".format(base_dir, image_basename, index)
-    im.save(filename)
+
+    if (pars.args.chm.lower() != 'true'):
+        im = Image.fromarray(crop)        
+        im.save(filename)
+    else:
+        cv2.imwrite(filename, crop)
 
     return filename
 
@@ -163,12 +182,17 @@ def split_raster(path_to_raster,
         A pandas dataframe with annotations file for training.
     """
     # Load raster as image
-    raster = Image.open(path_to_raster)
-    numpy_image = np.array(raster)
+    if (pars.args.chm.lower() != 'true'):
+        raster = Image.open(path_to_raster)
+        numpy_image = np.array(raster)
+    else:
+        raster = rasterio.open(path_to_raster)
+        numpy_image = raster.read()
+        numpy_image = np.moveaxis(numpy_image, 0, 2)
 
     # Check that its 3 band
     bands = numpy_image.shape[2]
-    if not bands == 3:
+    if (not (bands == 3)) and (pars.args.chm.lower() != 'true'):
         raise IOError("Input file {} has {} bands. DeepForest only accepts 3 band RGB "
                       "rasters in the order (height, width, channels). "
                       "If the image was cropped and saved as a .jpg, "

@@ -10,6 +10,7 @@ from torchvision.ops import nms
 from deepforest import preprocess
 from deepforest import visualize
 from skimage import io
+import my_parse as pars
 
 
 def predict_image(model, image, return_plot, device, iou_threshold=0.1):
@@ -68,7 +69,6 @@ def predict_file(model, csv_file, root_dir, savedir, device, iou_threshold=0.1):
     prediction_list = []
     for path in images:
         image = io.imread("{}/{}".format(root_dir, path))
-        image = image[:, :, :3]
 
         image = preprocess.preprocess_image(image)
 
