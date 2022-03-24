@@ -1,5 +1,6 @@
 # entry point for deepforest model
 import os
+import my_parse as pars
 import pandas as pd
 import numpy as np
 from skimage import io
@@ -532,5 +533,5 @@ class deepforest(pl.LightningModule):
         bb_area = x_len * y_len
 
         #return the index of bboxes with areas greater than X
-        res = sigma(0.5 * (400 - bb_area))
+        res = sigma(pars.args.k_sig * (pars.args.mu_area - bb_area))
         return res
