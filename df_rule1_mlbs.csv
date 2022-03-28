@@ -1,0 +1,7 @@
+site,seed,epochs,chm,train,test,bbox_prec,bbox_rec,class_prec,class_rec
+mlbs,42,5,False,training3/MLBS-train.csv,evaluation3/MLBS-test.csv,0.45328432021292075,0.587779633444408,0.7758064516129032,1.0
+mlbs,518437,5,False,training3/MLBS-train.csv,evaluation3/MLBS-test.csv,0.4126762755072744,0.5809224808964975,0.7115384615384616,1.0
+mlbs,645142,5,False,training3/MLBS-train.csv,evaluation3/MLBS-test.csv,0.4342826263329076,0.5606169136889476,0.777059773828756,1.0
+mlbs,951277,5,False,training3/MLBS-train.csv,evaluation3/MLBS-test.csv,0.4362087660617072,0.568392078035906,0.7708333333333334,1.0
+mlbs,769680,5,False,training3/MLBS-train.csv,evaluation3/MLBS-test.csv,0.4459151694816367,0.5955598162245908,0.750390015600624,1.0
+mlbs,454803,5,False,training3/MLBS-train.csv,evaluation3/MLBS-test.csv,0.4168988434537584,0.5679158421823116,0.7366003062787136,1.0
