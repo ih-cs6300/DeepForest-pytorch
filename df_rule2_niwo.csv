@@ -1,0 +1,2 @@
+site,seed,epochs,chm,train,test,bbox_prec,bbox_rec,class_prec,class_rec
+niwo,42,7,False,training3/NIWO-train.csv,evaluation3/NIWO-test.csv,0.6507709893726871,0.5045088040977298,0.9862660944206009,0.646595385481148
