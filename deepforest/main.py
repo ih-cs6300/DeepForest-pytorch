@@ -501,7 +501,8 @@ class deepforest(pl.LightningModule):
         coords2 = coords.view(-1, 2).to(device)
 
         # transpose coordinates and make them homogenous
-        coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]], requires_grad=True).to(device)]).to(device)
+        #coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]], requires_grad=True).to(device)]).to(device)
+        coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]]).to(device)]).to(device)
 
         # calculate coordinates of centroid
         # centroid = np.mean(coordsNp[:-1, :], axis=0)

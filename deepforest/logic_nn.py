@@ -41,7 +41,8 @@ class LogicNN(object):
         new_data- image data
         new_rule_fea - a list of rule features for each rule
         """
-        expon_all = torch.tensor(0.0, requires_grad=True)
+        #expon_all = torch.tensor(0.0, requires_grad=True)
+        expon_all = torch.tensor(0.0)
         for i, rule in enumerate(self.rules):
             expon = rule.expon(self.C * self.rule_lambda[i], y_pred, new_rule_fea[i])
             expon_all = expon_all + expon
@@ -78,7 +79,8 @@ class LogicNN(object):
         coords2 = coords.view(-1, 2).to(self.device)
 
         # transpose coordinates and make them homogenous
-        coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]], requires_grad=True).to(self.device)]).to(self.device)
+        #coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]], requires_grad=True).to(self.device)]).to(self.device)
+        coordsMatrix = torch.vstack([coords2.T, torch.ones([1, coords2.shape[0]]).to(self.device)]).to(self.device)
 
         # calculate coordinates of centroid
         # centroid = np.mean(coordsNp[:-1, :], axis=0)
@@ -109,7 +111,8 @@ class LogicNN(object):
 
         scale_factors = self.reg_rule_constraints(p_y_pred, new_data, new_rule_fea)
 
-        q_y_pred = torch.zeros(p_y_pred.shape, requires_grad=True).to(self.device)
+        #q_y_pred = torch.zeros(p_y_pred.shape, requires_grad=True).to(self.device)
+        q_y_pred = torch.zeros(p_y_pred.shape).to(self.device)
 
 
         # scale each BBox while keeping the same centroid
