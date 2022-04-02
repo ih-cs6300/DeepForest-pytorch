@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --time=36:00:00
+#SBATCH --time=60:00:00
 #SBATCH --gpus=a100:1
 #SBATCH --partition=gpu
-#SBATCH --mem=32gb
+#SBATCH --mem=20gb
 #SBATCH --job-name=r2_002    # Job name
 #SBATCH --output=r2_%j.out   # Standard output and error log
 
@@ -18,10 +18,10 @@ sleep 10
 #./run_df.sh 300 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs df_rule1_mlbs.csv False 0.000125 1 2304 0.5 0.88 0.4
 
 # rule2
-#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_rule2_niwo.csv False 1 3 19.0 20.0 0.0 20.0 0.0 20.0 0.95 0.5
-./run_df.sh 1 leftover_seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak df_rule2_teak.csv False 1 1 46.0 46.0 0 112.2 0 112.2 0.95 0.5
-#./run_df.sh 300 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer df_rule2_sjer.csv False 1 1 72.0 72.0 9.753 157.303 10.431 160.478 0.95 0.5
-#./run_df.sh 300 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs df_rule2_mlbs.csv False 1 1 48.0 48.0 10.73 86.678 10.71 89.132 0.95 0.5
+#./run_df.sh 101 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_rule2_niwo.csv False 1 3 19.0 20.0 0.0 34.55 0.0 36.0 0.95 0.5
+#./run_df.sh 101 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak df_rule2_teak.csv False 1 1 46.0 46.0 0.0 96.1 0.0 97.7 0.95 0.5
+#./run_df.sh 300 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer df_rule2_sjer.csv False 1 1 72.0 72.0 0.0 146.3 0.0 149.5 0.95 0.5
+./run_df.sh 300 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs df_rule2_mlbs.csv False 1 3 48.0 48.0 0.0 86.7 0.0 89.1 0.95 0.5
 
 # baseline-cross site
 #./run_df.sh 101 seeds.txt 7 training3 evaluation3 NIWO-train.csv TEAK-val.csv TEAK-test.csv niwo_teak df_niwo_teak_baseline.csv False
