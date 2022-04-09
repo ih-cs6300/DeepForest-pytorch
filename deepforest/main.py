@@ -357,6 +357,10 @@ class deepforest(pl.LightningModule):
         with comet.experiment.train():
             comet.experiment.log_metric("pi", pi)
             comet.experiment.log_metric("huLoss", huLoss)
+            comet.experiment.log_metric("reg_loss", loss_dict['bbox_regression'])
+            comet.experiment.log_metric("class_loss", loss_dict['classification'])
+            comet.experiment.log_metric("tot_loss", sum([loss for loss in loss_dict.values()]))
+
         return losses
 
     def validation_step1(self, batch, batch_idx):
