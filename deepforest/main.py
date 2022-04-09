@@ -1,5 +1,6 @@
 # entry point for deepforest model
 import os
+import my_parse as pars
 import pandas as pd
 import numpy as np
 from skimage import io
@@ -101,7 +102,7 @@ class deepforest(pl.LightningModule):
         self.trainer = pl.Trainer(logger=logger,
                                   max_epochs=self.config["train"]["epochs"],
                                   gpus=self.config["gpus"],
-                                  checkpoint_callback=True,
+                                  checkpoint_callback=False,
                                   distributed_backend=self.config["distributed_backend"],
                                   fast_dev_run=self.config["train"]["fast_dev_run"],
                                   callbacks=callbacks,
@@ -500,7 +501,8 @@ class deepforest(pl.LightningModule):
 
             for row in range(boxes.shape[0]):
                 if torch.numel(chm) > 0:
-                   ht = torch.max(chm[boxes[row][1]:boxes[row][3], boxes[row][0]:boxes[row][2]])
+                   # +1 eliminates degenrate boxes i.e. boxes with 0 width or height
+                   ht = torch.max(chm[boxes[row][1]:boxes[row][3] + 1, boxes[row][0]:boxes[row][2] + 1])
                 else:
                    ht = 0.
                 ht_list.append(ht)
@@ -543,7 +545,9 @@ class deepforest(pl.LightningModule):
         images - list of images in batch
         preds - list of prediction dictionaries withkeys boxes, scores, and labels
         """   
-        optim_area = 0.32658 * (torch.pow(preds[0]['hts'], 0.87992))
+
+        # y = b * x^(a)
+        optim_area = pars.args.b * (torch.pow(preds[0]['hts'], pars.args.a))
         #optim_area = 1 * (torch.pow(preds[0]['hts'], 0))
         optim_area = torch.divide(optim_area, 0.01)
 
@@ -555,7 +559,7 @@ class deepforest(pl.LightningModule):
         bb_area = x_len * y_len
 
         #return the index of bboxes with areas greater than X
-        res = sigma(0.5 * (optim_area.flatten() - bb_area))
+        res = sigma(pars.args.k_sig * (optim_area.flatten() - bb_area))
         return res
 
 
