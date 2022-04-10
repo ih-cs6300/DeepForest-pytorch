@@ -14,6 +14,7 @@ from deepforest import model
 from deepforest import predict
 from deepforest import evaluate as evaluate_iou
 
+import comet
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
@@ -289,6 +290,10 @@ class deepforest(pl.LightningModule):
         path, images, targets = batch
 
         loss_dict = self.model.forward(images, targets)
+        with comet.experiment.train():
+           comet.experiment.log_metric("reg_loss", loss_dict['bbox_regression'])
+           comet.experiment.log_metric("class_loss", loss_dict['classification'])
+           comet.experiment.log_metric("tot_loss", sum([loss for loss in loss_dict.values()]))
 
         # sum of regression and classification loss
         losses = sum([loss for loss in loss_dict.values()])
