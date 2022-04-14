@@ -1,0 +1,37 @@
+Analyzing NIWO...
+Analyzing TEAK...
+Analyzing SJER...
+Analyzing MLBS...
+
+
+Tree count
+             NIWO  TEAK  SJER  MLBS
+cmp ≤ mean   1012   406   114   283
+cmp > mean    614   244    69   196
+cmp          1626   650   183   479
+ncmp ≤ mean   111    64    52     1
+ncmp > mean    40    20    20     1
+ncmp          151    84    72     2
+total trees  1777   734   255   481
+
+
+Relative to all trees at site
+                 NIWO      TEAK      SJER      MLBS
+cmp ≤ mean   0.569499  0.553134  0.447059  0.588358
+cmp > mean   0.345526  0.332425  0.270588  0.407484
+cmp          0.915025  0.885559  0.717647  0.995842
+ncmp ≤ mean  0.062465  0.087193  0.203922  0.002079
+ncmp > mean  0.022510  0.027248  0.078431  0.002079
+ncmp         0.084975  0.114441  0.282353  0.004158
+total trees  1.000000  1.000000  1.000000  1.000000
+
+
+Relative to competing and non-competing trees
+                    NIWO        TEAK        SJER        MLBS
+cmp ≤ mean      0.622386    0.624615    0.622951    0.590814
+cmp > mean      0.377614    0.375385    0.377049    0.409186
+cmp             1.000000    1.000000    1.000000    1.000000
+ncmp ≤ mean     0.735099    0.761905    0.722222    0.500000
+ncmp > mean     0.264901    0.238095    0.277778    0.500000
+ncmp            1.000000    1.000000    1.000000    1.000000
+total trees  1777.000000  734.000000  255.000000  481.000000
