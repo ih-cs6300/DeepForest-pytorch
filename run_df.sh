@@ -30,6 +30,7 @@ do
    seed=`awk "FNR == $idx" ${seed_file}`
    python3 test1.py --seed ${seed} --site ${site_name} --train_dir ${tr_dir} --test_dir ${te_dir} --train_ann ${tr_ann} --val_ann ${va_ann} --test_ann ${te_ann} --epochs ${epochs} --log ${log_file} --chm ${use_chm} --C ${norm_const} --pi_start ${pi_start} --opt_w ${opt_w} --opt_h ${opt_h} --wllim ${wllim} --wrlim ${wrlim} --hllim ${hllim} --hrlim ${hrlim} --pi_0 ${pi_0} --pi_1 ${pi_1}
    rm core.*
+   rm ./checkpoints/*
    echo ""
 done
 
