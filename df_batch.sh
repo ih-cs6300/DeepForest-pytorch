@@ -48,3 +48,54 @@ sleep 10
 #./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-30per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
 #./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-50per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
 #./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-75per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+
+
+
+# rule 1: f1 vs pi graph and rule verification
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.0
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.1
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.2
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.3
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.4
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.5
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.6
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.7
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.8
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 0.9
+#./run_df.sh 1 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo f1_ver.csv False 0.000125 1 400 0.5 0.95 0.0 1.0
+
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.0
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.1
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.2
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.3
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.4
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.5
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.6
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.7
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.8
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.9
+./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 1.0
+
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.0
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.1
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.2
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.3
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.4
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.5
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.6
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.7
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.8
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.9
+./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 1.0
+
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.0
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.1
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.2
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.3
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.4
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.5
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.6
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.7
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.8
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.9
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 1.0
