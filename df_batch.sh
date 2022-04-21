@@ -2,16 +2,30 @@
 #SBATCH --time=36:00:00
 #SBATCH --gpus=a100:1
 #SBATCH --partition=gpu
-#SBATCH --mem=32gb
-#SBATCH --job-name=r1_002    # Job name
-#SBATCH --output=r1_%j.out   # Standard output and error log
+#SBATCH --mem=20gb
+#SBATCH --job-name=r4_002    # Job name
+#SBATCH --output=r4_%j.out   # Standard output and error log
 
 # Load modules or your own conda environment here
 module load git
 module load conda && conda activate deepforest1
 sleep 10
 
-# baseline-standard
+# rule 4
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.0
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.1
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.2
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.3
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.4
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.5
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.6
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.7
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.8
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.9
+./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 1.0
+
+
+# rule 1
 #./run_df.sh 101 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_rule1_niwo.csv False 0.000125 5 400 0.5 0.95 0.5
 #./run_df.sh 101 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak df_rule1_teak.csv False 0.01 4 2304 1e-6 0.95 0.5
 #./run_df.sh 300 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer df_rule1_sjer.csv False 0.000125 3 5184 0.5 0.80 0.5
@@ -74,7 +88,7 @@ sleep 10
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.7
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.8
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 0.9
-./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 1.0
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 0.01 1 2304 1e-6 0.95 0.0 1.0
 
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.0
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.1
@@ -86,7 +100,7 @@ sleep 10
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.7
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.8
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 0.9
-./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 1.0
+#./run_df.sh 1 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer f1_ver.csv False 0.000125 1 5184 0.5 0.80 0.0 1.0
 
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.0
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.1
@@ -99,3 +113,4 @@ sleep 10
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.8
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 0.9
 #./run_df.sh 1 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs f1_ver.csv False 0.000125 1 2304 0.5 0.88 0.0 1.0
+
