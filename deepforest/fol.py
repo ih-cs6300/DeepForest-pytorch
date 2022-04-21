@@ -127,12 +127,12 @@ class FOL_green(FOL):
         return log_distr
 
     def log_distribution(self, w, X=None, F=None):
+        F = F.to(self.device)
         f_1 = F.reshape(-1, 1)
         f_0 = 1. - f_1
         f = torch.cat([f_0, f_1], 1)
         f = w * f
         return f
-
 
     def value_single(self, x, y, f):
         ret = torch.mean(torch.tensor([torch.min(torch.tensor([1. - y + f, 1.])), torch.min(torch.tensor([1. - f + y, 1.]))]))
