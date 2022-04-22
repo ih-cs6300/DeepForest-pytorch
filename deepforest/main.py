@@ -8,7 +8,7 @@ import torch
 from torch.nn import functional as F
 
 from datetime import datetime
-#import cv2
+import cv2
 from torchvision.ops import boxes
 
 import pytorch_lightning as pl
@@ -23,6 +23,7 @@ from deepforest import evaluate as evaluate_iou
 from deepforest.logic_nn import LogicNN
 import comet
 from itertools import combinations
+from deepforest.evaluate import evaluate_image
 
 class deepforest(pl.LightningModule):
     """Class for training and predicting tree crowns in RGB images
@@ -314,7 +315,7 @@ class deepforest(pl.LightningModule):
            self.batch_cnt += 1
 
         #calculate pi
-        pi = self.get_pi(curr_iter)
+        pi = self.get_pi(curr_iter)  #pars.args.pi_f
 
         # make sure model is in training mode
         self.model.train()
@@ -333,7 +334,42 @@ class deepforest(pl.LightningModule):
         eng_fea = []
         for img, img_dict in zip(images, preds):
             # generate special features
-            eng_fea = self.bbox_2big(images, preds)
+            eng_fea = self.is_green(images, preds)
+
+        #################################################################################################################################
+        # code to only target true positives
+        image_path = batch[0][0]
+        image = batch[1][0]
+        ann_dict = batch[2][0]
+        pred_dict = preds[0]
+
+        ground_df = pd.DataFrame(ann_dict['boxes'].cpu().detach().numpy(), columns=["xmin", "ymin", "xmax", "ymax"]).astype(float)
+
+        ground_df['image_path'] = [image_path] * ground_df.shape[0]
+        ground_df['label'] = ann_dict['labels'].cpu().detach()
+
+        predictions = pd.DataFrame(pred_dict['boxes'].cpu().detach().numpy(), columns=["xmin", "ymin", "xmax", "ymax"]).astype(float)
+        predictions['image_path'] = [image_path] * predictions.shape[0]
+        predictions['label'] = pred_dict['labels'].cpu().detach()
+
+        if (self.global_step > self.config['train']["beg_incr_pi"]) and (len(preds[0]['scores']) > 0):
+           #evaluate_image(predictions, ground_df, show_plot, root_dir, savedir)
+           res_df = evaluate_image(predictions, ground_df, False, self.config['train']['root_dir'], None)
+           matches_df = res_df[res_df.IoU >= 0.50]
+
+           mask = np.zeros([len(predictions), 1], dtype=np.float32)
+           mask[matches_df['prediction_id'].unique().astype(int)] = 1
+           mask = torch.from_numpy(mask)
+           mask = mask.to(self.device)
+           
+           eng_fea = mask * eng_fea.reshape(-1, 1)
+           eng_fea = eng_fea.flatten()
+        #else:
+           #mask = np.zeros([len(predictions), 1], dtype=np.float32)
+           #mask = torch.from_numpy(mask)
+           #mask = mask.to(self.device)
+           #eng_fea = (mask, eng_fea)
+        #################################################################################################################################
         
         if (len(preds[0]['scores']) > 0):
             q_y_pred = self.logic_nn.predict(preds[0]['scores'], images, [eng_fea]).to(self.device)
@@ -345,7 +381,7 @@ class deepforest(pl.LightningModule):
 
         self.log('pi', pi, prog_bar=True, on_step=True)
         self.log('num_preds', len(preds[0]['labels']), prog_bar=True, on_step=True)
-        self.log('num_comp', len(eng_fea), prog_bar=True, on_step=True)
+        #self.log('matched', len(eng_fea), prog_bar=True, on_step=True)
         self.log('hu_loss', huLoss, prog_bar=True, on_step=True)
 
         with comet.experiment.train():
@@ -538,3 +574,63 @@ class deepforest(pl.LightningModule):
         #return the index of bboxes with areas greater than X
         res = sigma(pars.args.k_sig * (pars.args.mu_area - bb_area))
         return res
+
+     
+    def is_green(self, images, preds):
+        # a function returning the percentage of green pixels within a bounding box
+        # used to penalize choosing non-green trees
+
+        t_p = 20.
+        k_sig = 1.
+        res_list = []
+
+        # assumes 1 image per batch
+        assert len(images) == 1, "Batch size != 1"
+
+        # HSV color limits for green in TEAK
+        lower_color_limit = np.array([18, 47, 0])
+        upper_color_limit = np.array([44, 161, 227])
+
+        # HSV color limits for brown in TEAK
+        #lower_color_limit = np.array([2, 68, 224])
+        #upper_color_limit = np.array([20, 132, 255])
+
+        # convert image from tensor to numpy array
+        img_rgb = images[0].cpu().numpy()
+
+        # permute dimensions; cv2 expects hxwxc; but tensor was cxhxw
+        img_rgb = np.transpose(img_rgb, (1, 2, 0))
+
+        # normalize image to 0 - 255 from 0 - 1
+        img_rgb = cv2.normalize(img_rgb, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+        # pytorch uses rgb but cv2 use bgr so convert to bgr
+        img_rgb = img_rgb[:, :, ::-1]
+
+        # convert image to hsv color space
+        img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV)
+
+        # generate mask using upper and lower limits for green
+        mask = cv2.inRange(img_hsv, lower_color_limit, upper_color_limit)
+
+        # apply mask to image
+        masked_img = cv2.bitwise_and(img_hsv, img_hsv, mask = mask)
+
+        # write to disk for testing
+        #cv2.imwrite("masked_image.png", cv2.cvtColor(masked_img, cv2.COLOR_HSV2BGR))
+
+        boxes = np.round(preds[0]['boxes'].cpu().detach().numpy()).astype(np.int)
+        for box in boxes:
+            # box format: [x1, y1, x2, y2]
+            # value 0 = black
+            total_pixels = (box[3] - box[1]) * (box[2] - box[0])
+            green_pixels = np.count_nonzero(masked_img[box[1]:box[3], box[0]:box[2], 2])
+            p_b = green_pixels/total_pixels
+
+            sigma = torch.nn.Sigmoid()
+            res = sigma(k_sig * (100. * torch.tensor(p_b) - torch.tensor(t_p)))
+            res_list.append(res)
+   
+        eng_fea = torch.tensor(res_list, requires_grad=True).to(self.device)
+        return eng_fea
+

@@ -14,9 +14,8 @@ parser.add_argument('--chm', type=str, required=True, default='False', help='use
 parser.add_argument('--log', type=str, required=True, help='local file:"log.csv" or "comet"')
 parser.add_argument('--C', type=float, required=True, help='normalizing constant')
 parser.add_argument('--pi_start', type=int, required=True, help='epoch to start to apply rule')
-parser.add_argument('--mu_area', type=int, required=True, help='mean bounding area')
-parser.add_argument('--k_sig', type=float, required=True, help='constant in sigmoid')
 parser.add_argument('--pi_0', type=float, required=True, help='first term of pi_params')
 parser.add_argument('--pi_1', type=float, required=True, help='second term of pi_params')
+parser.add_argument('--pi_f', type=float, required=False, help='fixed value of pi')
 
 args = parser.parse_args()

@@ -14,18 +14,18 @@ log_file=${10}   # name of logging file   ex: "df_baseline_niwo.csv"
 use_chm=${11}    # use chm                ex: "True"
 norm_const=${12} # normalizatin const     ex: 6
 pi_start=${13}   # epoch to start rule    ex: 3
-mu_area=${14}    # bbox mean area         ex: 400
-k_sig=${15}      # sigma coeff            ex: 0.5
-pi_0=${16}       # 1st pi_param term      ex: 0.95
-pi_1=${17}       # 2nd pi_param term      ex: 0.5 
+pi_0=${14}       # 1st pi_param term      ex: 0.95
+pi_1=${15}       # 2nd pi_param term      ex: 0.5 
+#pi_f=${16}       # fixed value of pi      ex pi_f in [0, 1]
 
 for (( idx=1; idx<=$num_iter; idx++ ))
 do
    echo "Bash loop $idx"
    rm ./pred_result2/*
    seed=`awk "FNR == $idx" ${seed_file}`
-   python3 test1.py --seed ${seed} --site ${site_name} --train_dir ${tr_dir} --test_dir ${te_dir} --train_ann ${tr_ann} --val_ann ${va_ann} --test_ann ${te_ann} --epochs ${epochs} --log ${log_file} --chm ${use_chm} --C ${norm_const} --pi_start ${pi_start} --mu_area ${mu_area} --k_sig ${k_sig} --pi_0 ${pi_0} --pi_1 ${pi_1}
+   python3 test1.py --seed ${seed} --site ${site_name} --train_dir ${tr_dir} --test_dir ${te_dir} --train_ann ${tr_ann} --val_ann ${va_ann} --test_ann ${te_ann} --epochs ${epochs} --log ${log_file} --chm ${use_chm} --C ${norm_const} --pi_start ${pi_start} --pi_0 ${pi_0} --pi_1 ${pi_1}
    rm core.*
+   rm ./checkpoints/*
    echo ""
 done
 

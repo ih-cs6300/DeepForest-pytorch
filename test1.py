@@ -18,7 +18,7 @@ from deepforest.fol import FOL_green, FOL_competition, FOL_bbox_2big
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 n_classes = 1
-rules = [FOL_bbox_2big(device, 1, None, None), ]   #[FOL_green(device, 2, None, None), ]
+rules = [FOL_green(device, 1, None, None),]
 rule_lambdas = [1e2]
 pi_params = [pars.args.pi_0, pars.args.pi_1]  
 batch_size = 1
@@ -60,7 +60,7 @@ n_train_batches = len(training_data) / batch_size
 m.config["train"]["n_train_batches"] = n_train_batches
 
 # create a pytorch lighting trainer used to training
-checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
+#checkpoint_callback = ModelCheckpoint(monitor='val_loss', dirpath='./checkpoints', filename='deepforest_chkpt-{epoch:02d}-{val_loss:.2f}', save_top_k=1, mode='min',)
 #m.create_trainer(callbacks=[checkpoint_callback])
 m.create_trainer()
 
@@ -82,6 +82,11 @@ except OSError as error:
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir= save_dir)
 csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec"])
 csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item()])
+
+# for fixed pi
+#csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "pi_f", "rule", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec", "n_grn_matched", "n_brn_matched", "n_both_matched"])
+#csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.pi_f), "R4", str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item(), results["num_green_matched"], results["num_brown_matched"], results["num_both_matched"]])
+
 print("bbox prec: {}".format(results['box_precision']))
 print("bbox rec: {}".format(results['box_recall']))
 print("class prec: {}".format(results['class_recall']['precision'].item()))
