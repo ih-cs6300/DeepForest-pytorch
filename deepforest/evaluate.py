@@ -13,6 +13,10 @@ from deepforest.utilities import check_file
 from deepforest import visualize
 
 from os.path import join
+import cv2
+from glob import glob
+from os.path import basename
+from deepforest.evaluate_rule4 import calc_per, calc_bbox_area, draw_rect, single_img_stats, multi_img_stats, count_stuff, stats
 
 def evaluate_image(predictions, ground_df, show_plot, root_dir, savedir):
     """
@@ -84,6 +88,22 @@ def evaluate(predictions,
         class_recall: a pandas dataframe of class level recall and precision with class sizes
     """
 
+    #############################
+    # added for rule4 evaluation
+    path = "evaluation3/"
+
+    # green
+    grn_lower_color_limit = np.array([18, 47, 0])
+    grn_upper_color_limit = np.array([44, 161, 227])
+
+    # brown
+    brn_lower_color_limit = np.array([2, 68, 224])
+    brn_upper_color_limit = np.array([20, 132, 255])
+
+    test_set_name = "TEAK-test.csv"
+
+    #############################
+
     check_file(ground_df)
     check_file(predictions)
 
@@ -147,6 +167,31 @@ def evaluate(predictions,
             class_size[name] = group.shape[0]
         
         class_recall = pd.DataFrame({"label":class_recall_dict.keys(),"recall":pd.Series(class_recall_dict), "precision":pd.Series(class_precision_dict), "size":pd.Series(class_size)}).reset_index(drop=True)
+
+    #################################################
+    # added for rule4 evaluation
+    test_df = pd.read_csv(join(path, test_set_name))
+    test_green_df = multi_img_stats(path, test_df, grn_lower_color_limit, grn_upper_color_limit, "green")
+    test_brown_df = multi_img_stats(path, test_df, brn_lower_color_limit, brn_upper_color_limit, "brown")
+    test_all_df = test_green_df
+    test_all_df['brown'] = test_brown_df['brown']
+
+    matches_rule_green_df = multi_img_stats(path, match_df, grn_lower_color_limit, grn_upper_color_limit, "green")
+    matches_rule_brown_df = multi_img_stats(path, match_df, brn_lower_color_limit, brn_upper_color_limit, "brown")
+    matches_rule_all_df = matches_rule_green_df
+    matches_rule_all_df['brown'] = matches_rule_brown_df['brown']
+    matches_rule_all_df = matches_rule_all_df.loc[:, ['image_path', 'pxmin', 'pymin', 'pxmax', 'pymax', 'area', 'green', 'brown']]
+    matches_rule_all_df = matches_rule_all_df.rename(columns={"pxmin":"xmin", "pymin": "ymin", "pxmax": "xmax", "pymax": "ymax"})
+
+    rule_counts = stats(test_all_df, matches_rule_all_df)
+    df3 = pd.DataFrame(rule_counts, index=["clr rule"])
+    print(df3.columns)
+    df3['num_green_matched'] = df3['num_green_matched'] / df3["num_green"]
+    df3['num_brown_matched'] = df3['num_brown_matched'] / df3["num_brown"]
+    df3['num_both_matched'] = df3['num_both_matched'] / df3["num_both"]
+    print(df3.loc[:, ["num_green_matched", "num_brown_matched", "num_both_matched", "tot_num_trees"]])
+    #################################################
+
     predictions.to_csv(join(savedir, "predictions.csv"), index=False, header=True)  # not deepforest code
     match_df.to_csv(join(savedir, "matches.csv"), index=False, header=True)   # not deepforest code
-    return {"results": results, "box_precision": box_precision, "box_recall": box_recall, "class_recall":class_recall}
+    return {"results": results, "box_precision": box_precision, "box_recall": box_recall, "class_recall":class_recall, 'num_green_matched':df3.loc['clr rule', 'num_green_matched'], "num_brown_matched": df3.loc['clr rule', 'num_brown_matched'], "num_both_matched":df3.loc['clr rule', 'num_both_matched']}
