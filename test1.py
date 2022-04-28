@@ -73,8 +73,14 @@ except OSError as error:
    pass
 
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir = save_dir)
-csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec"])
-csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item()])
+# baseline logging statement
+#csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec"])
+#csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item()])
+
+# logging statements for rule4
+csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec", "n_grn_matched", "n_brn_matched", "n_both_matched"])
+csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item(), results["num_green_matched"], results["num_brown_matched"], results["num_both_matched"]])
+
 print("bbox prec: {}".format(results['box_precision']))
 print("bbox rec: {}".format(results['box_recall']))
 print("class prec: {}".format(results['class_recall']['precision'].item()))
