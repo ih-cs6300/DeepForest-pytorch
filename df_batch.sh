@@ -13,7 +13,7 @@ sleep 10
 
 # baseline-standard
 #./run_df.sh 101 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_baseline.csv False
-#./run_df.sh 101 seeds.txt 5 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak df_teak_baseline.csv False
+./run_df.sh 5 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak comet False
 #./run_df.sh 300 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer df_sjer_baseline.csv False
 #./run_df.sh 300 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs df_mlbs_baseline.csv False
 
@@ -31,20 +31,20 @@ sleep 10
 
 
 # small datasets
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-1per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-2per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-5per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-10per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-20per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-30per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-50per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-75per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-1per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-2per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-5per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-10per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-20per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-30per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-50per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 7 training3 evaluation3 NIWO-train-75per.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_small_pw_baseline.csv False
 
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-1per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-2per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-5per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-10per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-20per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-30per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-50per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
-./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-75per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-1per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-2per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-5per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-10per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-20per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-30per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-50per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
+#./run_df.sh 10 seeds.txt 5 training3 evaluation3 TEAK-train-75per.csv TEAK-val.csv TEAK-test.csv teak df_teak_small_pw_baseline.csv False
