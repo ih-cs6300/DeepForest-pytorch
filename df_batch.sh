@@ -11,18 +11,22 @@ module load git
 module load conda && conda activate deepforest1
 sleep 10
 
-# rule 4
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.0
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.1
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.2
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.3
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.4
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.5
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.6
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.7
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.8
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.9
-./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 1.0
+# rule 4; fixed p_f
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.0
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.1
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.2
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.3
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.4
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.5
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.6
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.7
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.8
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 0.9
+#./run_df.sh 4 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak f1_ver.csv False 1 1 0.6 0.1 1.0
+
+
+# pi_f not fixed
+./run_df.sh 5 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak comet False 1 3 0.6 0.1
 
 
 # rule 1
