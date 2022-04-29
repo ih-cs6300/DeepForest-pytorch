@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --time=36:00:00
+#SBATCH --time=48:00:00
 #SBATCH --gpus=a100:1
 #SBATCH --partition=gpu
-#SBATCH --mem=32gb
+#SBATCH --mem=20gb
 #SBATCH --job-name=baseline002     # Job name
 #SBATCH --output=baseline_%j.out   # Standard output and error log
 
@@ -13,7 +13,7 @@ sleep 10
 
 # baseline-standard
 #./run_df.sh 101 seeds.txt 7 training3 evaluation3 NIWO-train.csv NIWO-val.csv NIWO-test.csv niwo df_niwo_baseline.csv False
-./run_df.sh 5 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak comet False
+./run_df.sh 101 seeds.txt 6 training3 evaluation3 TEAK-train.csv TEAK-val.csv TEAK-test.csv teak df_rule4_baseline.csv False
 #./run_df.sh 300 seeds.txt 5 training3 evaluation3 SJER-train.csv SJER-val.csv SJER-test.csv sjer df_sjer_baseline.csv False
 #./run_df.sh 300 seeds.txt 5 training3 evaluation3 MLBS-train.csv MLBS-val.csv MLBS-test.csv mlbs df_mlbs_baseline.csv False
 
