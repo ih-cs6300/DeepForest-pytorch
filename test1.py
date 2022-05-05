@@ -80,8 +80,14 @@ except OSError as error:
    pass
 
 results = m.evaluate(test_csv, eval_dir, iou_threshold = 0.5, show_plot = False, savedir= save_dir)
+# normal log
 csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec"])
 csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item()])
+
+# fixed pi_f log
+#csv_wr_obj = mlg.Writer(pars.args.log, ["exp_id", "site", "seed", "pi_f", "rule", "epochs", "chm", "train", "test", "bbox_prec", "bbox_rec", "class_prec", "class_rec"])
+#csv_wr_obj.write_data([comet.experiment.id, pars.args.site, str(pars.args.seed), str(pars.args.pi_f), "R3", str(pars.args.epochs), pars.args.chm, train_csv, test_csv, results['box_precision'], results['box_recall'], results['class_recall']['precision'].item(), results['class_recall']['recall'].item()])
+
 print("bbox prec: {}".format(results['box_precision']))
 print("bbox rec: {}".format(results['box_recall']))
 print("class prec: {}".format(results['class_recall']['precision'].item()))
